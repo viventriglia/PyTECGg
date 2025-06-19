@@ -1,0 +1,10 @@
+[package]
+name = "libtecrs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rinex = "0.19"
+pyo3 = { version = "0.24.2", features = ["extension-module"] }
+polars = { version = "0.48.1", features = ["lazy", "dtype-datetime"] }
+pyo3-polars = "0.21.0"
