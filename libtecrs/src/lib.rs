@@ -7,11 +7,11 @@ use std::path::Path;
 #[pyfunction]
 fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
     let rinex = Rinex::from_file(Path::new(path))
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("Errore RINEX: {}", e)))?;
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("RINEX error: {}", e)))?;
 
     if !rinex.is_observation_rinex() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            "Il file non è un RINEX OBS",
+            "This is not a RINEX Observation file",
         ));
     }
 
@@ -43,7 +43,7 @@ fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
 }
 
 #[pymodule]
-fn libtecrs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(read_rinex_obs_to_polars))?;
+fn libtecrs(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(read_rinex_obs_to_polars, m)?)?;
     Ok(())
 }
