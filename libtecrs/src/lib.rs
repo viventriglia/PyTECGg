@@ -15,19 +15,29 @@ fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
         ));
     }
 
-    let mut epochs = Vec::new();
+let mut epochs = Vec::new();
     let mut prns = Vec::new();
     let mut codes = Vec::new();
     let mut values = Vec::new();
+    let mut lli_flags = Vec::new();
 
-    for (epoch, (_, sv_map)) in rinex.obs().unwrap().epoch().iter() {
-        for (sv, observations) in sv_map {
-            for (code, obs) in observations {
-                epochs.push(epoch.to_datetime().to_string());
-                prns.push(format!("{:?}", sv));
-                codes.push(code.to_string());
-                values.push(obs.obs);
+    // Access the record which contains the observation data
+    match &rinex.record {
+        Record::ObsRecord(obs_data) => {
+            for (obs_key, observations) in obs_data.iter() {
+                for signal in &observations.signals {
+                    epochs.push(obs_key.epoch.to_string());
+                    prns.push(signal.sv.to_string());
+                    codes.push(signal.observable.to_string());
+                    values.push(signal.value);
+                    lli_flags.push(signal.lli.map(|f| f.bits() as i32));
+                }
             }
+        },
+        _ => {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "File does not contain observation data",
+            ));
         }
     }
 
@@ -36,6 +46,7 @@ fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
         "sv" => &prns,
         "observable" => &codes,
         "value" => &values,
+        "lli" => &lli_flags,
     ]
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
