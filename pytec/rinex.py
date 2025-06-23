@@ -21,6 +21,15 @@ def main():
         print(f"ECEF coordinates: X={x:.3f}, Y={y:.3f}, Z={z:.3f}")
         print(df.head(5))
 
+        df_pivot = df.pivot(
+            values="value",
+            index=["epoch", "sv"],
+            on="observable",
+            aggregate_function="first",
+        )
+
+        print(df_pivot.head(5))
+
 
 if __name__ == "__main__":
     main()
