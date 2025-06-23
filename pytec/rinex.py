@@ -1,4 +1,4 @@
-import libtecrs
+from libtecrs import read_rinex_obs_to_polars
 import polars as pl
 import time
 
