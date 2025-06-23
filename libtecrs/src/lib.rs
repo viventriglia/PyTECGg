@@ -19,11 +19,11 @@ fn read_rinex_obs_to_polars(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64
     let (x, y, z) = rinex.header.rx_position.unwrap_or((f64::NAN, f64::NAN, f64::NAN));
 
 
-let mut epochs = Vec::new();
+    let mut epochs = Vec::new();
     let mut prns = Vec::new();
     let mut codes = Vec::new();
     let mut values = Vec::new();
-    let mut lli_flags = Vec::new();
+    // let mut lli_flags = Vec::new();
 
     // Access the record which contains the observation data
     match &rinex.record {
@@ -34,7 +34,7 @@ let mut epochs = Vec::new();
                     prns.push(signal.sv.to_string());
                     codes.push(signal.observable.to_string());
                     values.push(signal.value);
-                    lli_flags.push(signal.lli.map(|f| f.bits() as i32));
+                    // lli_flags.push(signal.lli.map(|f| f.bits() as i32));
                 }
             }
         },
@@ -50,7 +50,7 @@ let mut epochs = Vec::new();
         "sv" => &prns,
         "observable" => &codes,
         "value" => &values,
-        "lli" => &lli_flags,
+        // "lli" => &lli_flags,
     ]
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
