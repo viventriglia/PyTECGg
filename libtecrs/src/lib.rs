@@ -5,7 +5,7 @@ use pyo3_polars::PyDataFrame;
 use std::path::Path;
 
 #[pyfunction]
-fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
+fn read_rinex_obs_to_polars(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
     let rinex = Rinex::from_file(Path::new(path))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("RINEX error: {}", e)))?;
 
@@ -14,6 +14,10 @@ fn read_rinex_obs_to_polars(path: &str) -> PyResult<PyDataFrame> {
             "This is not a RINEX Observation file",
         ));
     }
+
+    // Extract approximate rx coordinates (ECEF)
+    let (x, y, z) = rinex.header.rx_position.unwrap_or((f64::NAN, f64::NAN, f64::NAN));
+
 
 let mut epochs = Vec::new();
     let mut prns = Vec::new();
@@ -50,7 +54,7 @@ let mut epochs = Vec::new();
     ]
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-    Ok(PyDataFrame(df))
+    Ok((PyDataFrame(df), (x, y, z)))
 }
 
 #[pymodule]
