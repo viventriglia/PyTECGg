@@ -13,11 +13,12 @@ def main():
         print(f"\nProcessing file: {file_path}")
 
         start_time = time.time()
-        df = libtecrs.read_rinex_obs_to_polars(file_path)
+        df, (x, y, z) = read_rinex_obs_to_polars(file_path)
         load_time = time.time() - start_time
 
         print(f"Load time: {load_time:.2f} s")
         print(f"Number of rows: {len(df):,}")
+        print(f"ECEF coordinates: X={x:.3f}, Y={y:.3f}, Z={z:.3f}")
         print(df.head(5))
 
 
