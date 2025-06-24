@@ -1,4 +1,4 @@
-from libtecrs import read_rinex_obs, read_rinex_nav
+from pytecal import read_rinex_obs, read_rinex_nav
 import time
 
 
