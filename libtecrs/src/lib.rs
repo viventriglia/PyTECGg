@@ -3,6 +3,7 @@ use rinex::prelude::*;
 use polars::prelude::*;
 use pyo3_polars::PyDataFrame;
 use std::path::Path;
+use std::collections::{BTreeSet, BTreeMap};
 
 #[pyfunction]
 fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
@@ -57,7 +58,7 @@ fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
 }
 
 #[pyfunction]
-fn read_rinex_nav(path: &str) -> PyResult<PyDataFrame> {
+fn read_rinex_nav(path: &str) -> PyResult<BTreeMap<String, PyDataFrame>> {
     let rinex = Rinex::from_file(Path::new(path))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("RINEX error: {}", e)))?;
 
@@ -67,75 +68,108 @@ fn read_rinex_nav(path: &str) -> PyResult<PyDataFrame> {
         ));
     }
 
-    let mut prns = Vec::new();
-    let mut epochs = Vec::new();
-    let mut params = Vec::new();
-    let mut values = Vec::new();
+    // Mappa per costellazione -> DataFrame
+    let mut constellation_data: BTreeMap<String, Vec<BTreeMap<String, f64>>> = BTreeMap::new();
+    let mut constellation_times: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut constellation_svs: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
     for (nav_key, ephemeris) in rinex.nav_ephemeris_frames_iter() {
-        let sv_str = nav_key.sv.to_string();
+        let constellation = match nav_key.sv.constellation {
+            Constellation::GPS => "GPS",
+            Constellation::Glonass => "GLONASS",
+            Constellation::Galileo => "Galileo",
+            Constellation::BeiDou => "BeiDou",
+            Constellation::QZSS => "QZSS",
+            Constellation::IRNSS => "IRNSS",
+            Constellation::SBAS => "SBAS",
+            _ => "Unknown",
+        }.to_string();
+
+        let sv_id = nav_key.sv.prn.to_string(); // Rimuove il prefisso della costellazione
         let epoch_str = nav_key.epoch.to_string();
 
-        // Clock params
-        add_row(&mut prns, &mut epochs, &mut params, &mut values,
-                &sv_str, &epoch_str, "clock_bias", ephemeris.clock_bias);
-        add_row(&mut prns, &mut epochs, &mut params, &mut values,
-                &sv_str, &epoch_str, "clock_drift", ephemeris.clock_drift);
-        add_row(&mut prns, &mut epochs, &mut params, &mut values,
-                &sv_str, &epoch_str, "clock_drift_rate", ephemeris.clock_drift_rate);
+        // Crea una mappa per tutti i parametri
+        let mut params = BTreeMap::new();
 
-        // Orbit params
-        let orbit_params = [
-            ("sqrt_a", "sqrt_a"), 
-            ("eccentricity", "eccentricity"),
-            ("inclination", "inclination"),
-            ("raan", "raan"),
-            ("arg_perigee", "arg_perigee"),
-            ("mean_anomaly", "mean_anomaly"),
-            ("toe", "toe"),
-            ("iode", "iode"),
-            ("crc", "crc"),
-            ("crs", "crs"),
-            ("cuc", "cuc"),
-            ("cus", "cus"),
-            ("cic", "cic"),
-            ("cis", "cis"),
-        ];
+        // Aggiungi parametri di clock
+        params.insert("clock_bias".to_string(), ephemeris.clock_bias);
+        params.insert("clock_drift".to_string(), ephemeris.clock_drift);
+        params.insert("clock_drift_rate".to_string(), ephemeris.clock_drift_rate);
 
-        for (key, param_name) in orbit_params.iter() {
-            if let Some(item) = ephemeris.orbits.get(*key) {
-                let val = item.as_f64();
-                add_row(&mut prns, &mut epochs, &mut params, &mut values,
-                        &sv_str, &epoch_str, param_name, val);
-            }
+        // Aggiungi tutti i parametri orbitali disponibili
+        for (key, value) in &ephemeris.orbits {
+            params.insert(key.to_string(), value.as_f64());
         }
+
+        // Inizializza le strutture dati per questa costellazione se non esistono
+        constellation_data.entry(constellation.clone())
+            .or_insert_with(Vec::new)
+            .push(params);
+        constellation_times.entry(constellation.clone())
+            .or_insert_with(Vec::new)
+            .push(epoch_str);
+        constellation_svs.entry(constellation.clone())
+            .or_insert_with(Vec::new)
+            .push(sv_id);
     }
 
-    let df = df![
-        "sv" => &prns,
-        "epoch" => &epochs,
-        "param" => &params,
-        "value" => &values,
-    ]
-    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    // Crea i DataFrame per ogni costellazione
+    let mut result = BTreeMap::new();
+    
+    for (constellation, data) in constellation_data {
+        let times = &constellation_times[&constellation];
+        let svs = &constellation_svs[&constellation];
+        
+        // Raccogli tutti i nomi dei parametri univoci
+        let mut all_params = BTreeSet::new();
+        for params in &data {
+            for param_name in params.keys() {
+                all_params.insert(param_name.clone());
+            }
+        }
 
-    Ok(PyDataFrame(df))
-}
+        // Crea una serie per ogni parametro
+        let mut series_map: BTreeMap<String, Vec<Option<f64>>> = BTreeMap::new();
+        for param in &all_params {
+            series_map.insert(param.clone(), Vec::new());
+        }
 
-fn add_row(
-    prns: &mut Vec<String>,
-    epochs: &mut Vec<String>,
-    params: &mut Vec<String>,
-    values: &mut Vec<f64>,
-    sv: &str,
-    epoch: &str,
-    param: &str,
-    value: f64,
-) {
-    prns.push(sv.to_string());
-    epochs.push(epoch.to_string());
-    params.push(param.to_string());
-    values.push(value);
+        // Popola le serie
+        for params in &data {
+            for param in &all_params {
+                let value = params.get(param).copied();
+                series_map.get_mut(param).unwrap().push(value);
+            }
+        }
+
+        // Crea il DataFrame
+        let mut df_builder = df! {
+            "epoch" => times,
+            "sv" => svs,
+        }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Aggiungi tutte le colonne dei parametri
+        for (param_name, values) in series_map {
+            let mut series: Series = values.into_iter()
+                .map(|opt| opt.map(|v| v as f64))
+                .collect::<Float64Chunked>()
+                .into_series();
+            series.rename(param_name.into());
+            df_builder.with_column(series)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        }
+
+        // Imposta l'indice multi-livello (epoch, sv)
+        df_builder = df_builder
+            .lazy()
+            .with_row_index("row_id", None)
+            .collect()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        result.insert(constellation, PyDataFrame(df_builder));
+    }
+
+    Ok(result)
 }
 
 #[pymodule]
