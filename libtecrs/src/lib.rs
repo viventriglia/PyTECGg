@@ -7,8 +7,18 @@ use std::collections::{BTreeSet, BTreeMap};
 
 #[pyfunction]
 fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
-    let rinex = Rinex::from_file(Path::new(path))
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("RINEX error: {}", e)))?;
+    let path = Path::new(path);
+    
+    if !path.exists() {
+        return Err(PyErr::new::<pyo3::exceptions::PyFileNotFoundError, _>(
+            format!("File not found: {}", path.display())
+        ));
+    }
+
+    let rinex = Rinex::from_file(path)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(
+            format!("RINEX parsing error: {}", e)
+        ))?;
 
     if !rinex.is_observation_rinex() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
