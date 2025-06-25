@@ -7,12 +7,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.13"
-pandas = "^2.2.0"
 polars = "^1.20.0"
-
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.8.7"
+pytest = "^8.4.1"
+pytest-cov = "^6.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-v --cov=pytec --cov-report=term-missing"
 
 [build-system]
 requires = ["poetry-core"]

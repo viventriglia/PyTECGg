@@ -16,13 +16,6 @@ share/python-wheels/
 .installed.cfg
 libtecrs/target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
 # Environments
 .env
 .env.secret
@@ -44,8 +37,14 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Data
+# Test data
 rinex/**/
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+.coverage
 
 # Markdown
 # *.md
