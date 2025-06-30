@@ -31,7 +31,8 @@ def test_obs():
 
 def test_nav():
     files = [
-        "./rinex/v2/nav/BRDC00GOP_R_20140920000_01D_MN.rnx",
+        "./rinex/v3/nav/BRDC00GOP_R_20140920000_01D_MN.rnx",
+        "./rinex/v3/nav/BRDC00WRD_R_20250870000_01D_MN.rnx",
     ]
 
     for file_path in files:
@@ -46,7 +47,7 @@ def test_nav():
 
 
 def main():
-    test_obs()
+    # test_obs()
     test_nav()
 
 
