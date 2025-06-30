@@ -43,6 +43,9 @@ rinex/**/
 # Pytest cache
 .pytest_cache/
 
+# Jupyter Notebook
+jupyters/
+
 # Coverage reports
 .coverage
 
