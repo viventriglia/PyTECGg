@@ -1,4 +1,10 @@
 # PyTECal
+
+<!-- Add PyPi version when published -->
+![Python version](https://img.shields.io/badge/python-3.13-blue.svg)
+![License](https://img.shields.io/github/license/viventriglia/pyTEC)
+![Tests](https://github.com/viventriglia/pyTEC/actions/workflows/pytest.yml/badge.svg)
+
 Total Electron Content (**TEC**) reconstruction with **GNSS** data – a Python 🐍 package with a Rust 🦀 core
 
 ## Table of Contents
