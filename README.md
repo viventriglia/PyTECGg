@@ -11,11 +11,21 @@ Total Electron Content (**TEC**) reconstruction with **GNSS** data – a Python 
 
 ## What is it?
 
-TODO
+PyTECal is a fast, lightweight Python package that helps **reconstruct and calibrate** the [Total Electron Content](https://en.wikipedia.org/wiki/Total_electron_content) (TEC) from **GNSS data**.
+
+Why calibration matters? Because without it, you don’t actually know the true value of TEC — only how it changes. Uncalibrated TEC is affected by unknown biases from satellites and receivers, as well as other sources of error.
+
+This package:
+- is open source: read and access all the code!
+- supports all modern GNSS constellations, codes and signals:
+    - GPS, Galileo, BeiDou and QZSS
+- supports RINEX V2-3-4
+- provides seamless de-compression for RINEX files
 
 | ![Earth's ionosphere and GNSS satellites](images/project_cover.png) | 
 |:--:| 
 | *Generated image of Earth's ionosphere with GNSS satellites studying TEC* |
+
 
 ## How can I run it?
 
