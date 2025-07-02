@@ -30,7 +30,7 @@ jobs:
         run: poetry install
 
       - name: Compile Rust crate with maturin
-        run: poetry run maturin develop --manifest-path libtecrs/Cargo.toml
+        run: poetry run maturin develop --manifest-path pytecal-rs/Cargo.toml
 
       - name: Run tests with pytest
         run: poetry run pytest
