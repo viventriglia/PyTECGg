@@ -38,7 +38,7 @@ dmypy.json
 cython_debug/
 
 # Test data
-rinex/**/
+# rinex/**/
 
 # Pytest cache
 .pytest_cache/
