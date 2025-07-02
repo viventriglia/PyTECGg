@@ -89,7 +89,7 @@ def satellite_coordinates_bds(
     - KeyError: If the specified fieldname is not found in ephem_dict
     """
     const = GNSS_CONSTANTS["BeiDou"]
-    mu, we = const["gm"], const["we"]
+    mu, we = const.gm, const.we
 
     REQUIRED_BDS_KEYS = {
         "toe": "Time of Ephemeris",
@@ -186,7 +186,7 @@ def satellite_coordinates_gps(
     - aux: [8] array of [tk, Mk, Ek, vk, uk, rk, ik, lamk]
     """
     const = GNSS_CONSTANTS["GPS"]
-    gm, we = const["gm"], const["we"]
+    gm, we = const.gm, const.we
 
     REQUIRED_GPS_KEYS = {
         "toe": "Time of Ephemeris",

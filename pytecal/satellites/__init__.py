@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import TypedDict
+from typing import TypedDict, Optional
 from dataclasses import dataclass
 
 
@@ -9,6 +9,27 @@ class ConstellationParams:
     prefix: str
     time_offset: timedelta
     fields: list[str]
+
+
+@dataclass
+class GNSSConstants:
+    """Physical and geodetic constants for GNSS constellations
+
+    Attributes:
+        gm (float): Geocentric gravitational constant [m^3*s^-2]
+        we (float): Angular rotation rate of the Earth [rad*s^-1]
+        a (float): Semi-major axis of Earth's ellipsoid [m]
+        e (Optional[float]): Eccentricity of Earth's ellipsoid [dimensionless]
+        f (Optional[float]): Flattening of Earth's ellipsoid [dimensionless]
+        c20 (Optional[float]): Second degree zonal harmonic coefficient [dimensionless]
+    """
+
+    gm: float
+    we: float
+    a: float
+    e: Optional[float] = None
+    f: Optional[float] = None
+    c20: Optional[float] = None
 
 
 class EphemerisFields(TypedDict):
@@ -112,7 +133,6 @@ EPHEMERIS_FIELDS: EphemerisFields = {
     "NavIC": [],
 }
 
-# Constellation-specific parameters
 CONSTELLATION_PARAMS = {
     "GPS": ConstellationParams(
         time_system="GPST",
@@ -158,34 +178,21 @@ CONSTELLATION_PARAMS = {
     ),
 }
 
-
-GNSS_CONSTANTS = {
-    # gm: geocentric gravitational constant (m^3*s^-2)
-    # we: angular rotation of Earth (rad*s^-1)
-    # a: major-axis of Earth ellipsoid (m)
-    # e: numeric eccentricity of ellipsoid (-)
-    # f: flattening of Earth ellipsoid (-)
-    # c20: second degree zonal harmonic coefficient (-)
-    "GPS": {
-        "gm": 3.986005e14,
-        "we": 7.2921151467e-5,
-        "a": 6378137,
-        "e": 0.0818191908426215,
-        "f": 1 / 298.257223563,
-    },
-    "GLONASS": {
-        "gm": 3.9860044e14,
-        "we": 7.292115e-5,
-        "a": 6378136,
-        "c20": -1082.63e-6,
-    },
-    "Galileo": {"gm": 3.986004418e14, "we": 7.2921151467e-5, "a": 6378137},
-    "BeiDou": {
-        "gm": 3.986004418e14,
-        "we": 7.292115e-5,
-        "a": 6378137,
-        "f": 1 / 298.257222101,
-    },
+GNSS_CONSTANTS: dict[str, GNSSConstants] = {
+    "GPS": GNSSConstants(
+        gm=3.986005e14,
+        we=7.2921151467e-5,
+        a=6378137,
+        e=0.0818191908426215,
+        f=1 / 298.257223563,
+    ),
+    "GLONASS": GNSSConstants(
+        gm=3.9860044e14, we=7.292115e-5, a=6378136, c20=-1082.63e-6
+    ),
+    "Galileo": GNSSConstants(gm=3.986004418e14, we=7.2921151467e-5, a=6378137),
+    "BeiDou": GNSSConstants(
+        gm=3.986004418e14, we=7.292115e-5, a=6378137, f=1 / 298.257222101
+    ),
 }
 
 TOL_KEPLER = 0.001
