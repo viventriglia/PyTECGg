@@ -49,6 +49,9 @@ jupyters/
 # Coverage reports
 .coverage
 
+# Utility scripts
+scripts/
+
 # Markdown
 # *.md
 # !README.md
