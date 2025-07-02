@@ -1,41 +1,27 @@
 from datetime import timedelta
+from typing import TypedDict
+from dataclasses import dataclass
 
-# Constellation-specific parameters
-CONSTELLATION_PARAMS = {
-    "GPS": {"time_system": "GPST", "prefix": "G", "time_offset": timedelta(0)},
-    "BeiDou": {
-        "time_system": "BDT",
-        "prefix": "C",
-        "time_offset": timedelta(hours=8),
-    },
-    "Galileo": {
-        "time_system": "GST",
-        "prefix": "E",
-        "time_offset": timedelta(0),
-    },
-    "GLONASS": {
-        "time_system": "UTC",
-        "prefix": "R",
-        "time_offset": timedelta(0),
-    },
-    "QZSS": {
-        "time_system": "GPST",
-        "prefix": "J",
-        "time_offset": timedelta(0),
-    },
-    "NavIC": {
-        "time_system": "IRNWT",
-        "prefix": "I",
-        "time_offset": timedelta(0),
-    },
-    "SBAS": {
-        "time_system": "UTC",
-        "prefix": "S",
-        "time_offset": timedelta(0),
-    },
-}
 
-EPHEMERIS_FIELDS: dict[str, list[str]] = {
+@dataclass
+class ConstellationParams:
+    time_system: str
+    prefix: str
+    time_offset: timedelta
+    fields: list[str]
+
+
+class EphemerisFields(TypedDict):
+    GPS: list[str]
+    BeiDou: list[str]
+    GLONASS: list[str]
+    Galileo: list[str]
+    QZSS: list[str]
+    SBAS: list[str]
+    NavIC: list[str]
+
+
+EPHEMERIS_FIELDS: EphemerisFields = {
     "GPS": [
         "accuracy",
         "cic",
@@ -93,10 +79,85 @@ EPHEMERIS_FIELDS: dict[str, list[str]] = {
         "aodc",
     ],
     "GLONASS": [],
-    "Galileo": [],
+    "Galileo": [
+        "clock_bias",
+        "clock_drift",
+        "clock_drift_rate",
+        "bgdE5aE1",
+        "bgdE5bE1",
+        "iodnav",
+        "sisa",
+        "health",
+        "t_tm",
+        "toe",
+        "week",
+        "sqrta",
+        "e",
+        "i0",
+        "idot",
+        "omega0",
+        "omega",
+        "omegaDot",
+        "m0",
+        "deltaN",
+        "crc",
+        "crs",
+        "cuc",
+        "cus",
+        "cic",
+        "cis",
+    ],
     "QZSS": [],
     "SBAS": [],
+    "NavIC": [],
 }
+
+# Constellation-specific parameters
+CONSTELLATION_PARAMS = {
+    "GPS": ConstellationParams(
+        time_system="GPST",
+        prefix="G",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["GPS"],
+    ),
+    "BeiDou": ConstellationParams(
+        time_system="BDT",
+        prefix="C",
+        time_offset=timedelta(hours=8),
+        fields=EPHEMERIS_FIELDS["BeiDou"],
+    ),
+    "GLONASS": ConstellationParams(
+        time_system="UTC",
+        prefix="R",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["GLONASS"],
+    ),
+    "Galileo": ConstellationParams(
+        time_system="GST",
+        prefix="E",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["Galileo"],
+    ),
+    "QZSS": ConstellationParams(
+        time_system="GPST",
+        prefix="J",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["QZSS"],
+    ),
+    "NavIC": ConstellationParams(
+        time_system="IRNWT",
+        prefix="I",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["NavIC"],
+    ),
+    "SBAS": ConstellationParams(
+        time_system="UTC",
+        prefix="S",
+        time_offset=timedelta(0),
+        fields=EPHEMERIS_FIELDS["SBAS"],
+    ),
+}
+
 
 GNSS_CONSTANTS = {
     # gm: geocentric gravitational constant (m^3*s^-2)
