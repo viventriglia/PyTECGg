@@ -13,12 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download RINEX files artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: rinex-files
-          path: ./rinex
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
