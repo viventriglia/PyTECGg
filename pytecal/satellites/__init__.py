@@ -8,7 +8,31 @@ CONSTELLATION_PARAMS = {
         "prefix": "C",
         "time_offset": timedelta(hours=8),
     },
-    # TODO Add other constellations
+    "Galileo": {
+        "time_system": "GST",
+        "prefix": "E",
+        "time_offset": timedelta(0),
+    },
+    "GLONASS": {
+        "time_system": "UTC",
+        "prefix": "R",
+        "time_offset": timedelta(0),
+    },
+    "QZSS": {
+        "time_system": "GPST",
+        "prefix": "J",
+        "time_offset": timedelta(0),
+    },
+    "NavIC": {
+        "time_system": "IRNWT",
+        "prefix": "I",
+        "time_offset": timedelta(0),
+    },
+    "SBAS": {
+        "time_system": "UTC",
+        "prefix": "S",
+        "time_offset": timedelta(0),
+    },
 }
 
 EPHEMERIS_FIELDS: dict[str, list[str]] = {
