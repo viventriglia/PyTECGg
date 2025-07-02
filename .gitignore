@@ -14,7 +14,7 @@ var/
 wheels/
 share/python-wheels/
 .installed.cfg
-libtecrs/target/
+pytecal-rs/target/
 
 # Environments
 .env
