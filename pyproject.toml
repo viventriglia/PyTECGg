@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "pytec"
+name = "pytecal"
 version = "0.1.0"
-description = "Total Electron Content (TEC) reconstruction with GNSS data"
+description = "Total Electron Content (TEC) reconstruction with GNSS data – a Python package with a Rust core"
 authors = ["Vincenzo <vincenzo.ventriglia@outlook.com>"]
 readme = "README.md"
 
@@ -20,7 +20,7 @@ jupyter = "^1.1.1"
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
-addopts = "-v --cov=pytec --cov-report=term-missing"
+addopts = "-v --cov=pytecal --cov-report=term-missing"
 
 [build-system]
 requires = ["poetry-core"]

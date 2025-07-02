@@ -3,8 +3,8 @@ import numpy as np
 import math
 import datetime
 
-from pytec.satellites.kepler import kepler
-from pytec.satellites import GNSS_CONSTANTS, TOL_KEPLER
+from pytecal.satellites.kepler import kepler
+from pytecal.satellites import GNSS_CONSTANTS, TOL_KEPLER
 
 
 def _validate_ephemeris(data: dict, required_keys: dict) -> None:

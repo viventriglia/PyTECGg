@@ -3,7 +3,7 @@ from typing import Any
 
 import polars as pl
 
-from pytec.satellites import CONSTELLATION_PARAMS, EPHEMERIS_FIELDS
+from pytecal.satellites import CONSTELLATION_PARAMS, EPHEMERIS_FIELDS
 
 
 def prepare_ephemeris(
