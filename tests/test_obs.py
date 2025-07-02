@@ -1,4 +1,4 @@
-from pytecal import read_rinex_obs
+from pytecalrs import read_rinex_obs
 from polars import DataFrame
 import pytest
 
