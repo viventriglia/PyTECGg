@@ -1,10 +1,10 @@
-import numpy as np
+from numpy import sin, pi
 
 
 def kepler(e: float, mk: float, tol: float) -> float:
     """
     Computes the eccentric anomaly (ek) from the mean anomaly (mk)
-    using Kepler's equation and a fixed-point iteration method.
+    using Kepler's equation and a fixed-point iteration method
 
     Parameters:
     - e: numerical eccentricity of the orbit (dimensionless)
@@ -14,12 +14,12 @@ def kepler(e: float, mk: float, tol: float) -> float:
     Returns:
     - ek: eccentric anomaly in radians
     """
-    tol_rad = tol * (np.pi / 648000)
+    tol_rad = tol * (pi / 648_000)
 
     e_prev = mk
-    e_curr = mk + e * np.sin(e_prev)
+    e_curr = mk + e * sin(e_prev)
 
     while abs(e_curr - e_prev) > tol_rad:
-        e_prev, e_curr = e_curr, mk + e * np.sin(e_curr)
+        e_prev, e_curr = e_curr, mk + e * sin(e_curr)
 
     return e_curr
