@@ -69,7 +69,7 @@ def _apply_geo_correction(
     return Xk, Yk, Zk
 
 
-def get_sat_pos_bds(
+def satellite_coordinates_bds(
     ephem_dict: dict[str, dict[str, Any]], fieldname: str
 ) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -89,16 +89,9 @@ def get_sat_pos_bds(
     - KeyError: If the specified fieldname is not found in ephem_dict
     """
     const = GNSS_CONSTANTS["BeiDou"]
-    mu = const["gm"]
-    we = const["we"]
+    mu, we = const["gm"], const["we"]
 
-    # Verify the requested satellite exists
-    if fieldname not in ephem_dict:
-        raise KeyError(f"Satellite {fieldname} not found in ephemeris data")
-
-    data = ephem_dict[fieldname]
-
-    REQUIRED_KEYS = {
+    REQUIRED_BDS_KEYS = {
         "toe": "Time of Ephemeris",
         "sqrta": "Square Root of Semi-Major Axis",
         "deltaN": "Mean Motion Difference",
@@ -118,7 +111,11 @@ def get_sat_pos_bds(
         "datetime": "Observation datetime",
     }
 
-    _validate_ephemeris(data, REQUIRED_KEYS)
+    if fieldname not in ephem_dict:
+        raise KeyError(f"Satellite {fieldname} not found in ephemeris data")
+
+    data = ephem_dict[fieldname]
+    _validate_ephemeris(data, REQUIRED_BDS_KEYS)
 
     try:
         # Core computations
