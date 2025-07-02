@@ -3,7 +3,7 @@ from typing import Any
 
 import polars as pl
 
-from pytecal.satellites import CONSTELLATION_PARAMS, EPHEMERIS_FIELDS
+from pytecal.satellites import CONSTELLATION_PARAMS
 
 
 def _parse_time(time_str: str, time_system: str, time_offset: timedelta) -> datetime:
@@ -49,15 +49,12 @@ def _greg2gps(dt: datetime) -> tuple[int, float]:
     Returns:
     tuple: (GPS week, GPS seconds)
     """
-    # FIXME
-    # GPS epoch is January 6, 1980
-    gps_epoch = datetime(1980, 1, 6)
-    delta = dt - gps_epoch
-
-    gps_week = delta.days // 7
-    gps_seconds = delta.seconds + (delta.days % 7) * 86400 + delta.microseconds / 1e6
-
-    return gps_week, gps_seconds
+    epoch = datetime(1980, 1, 6, tzinfo=timezone.utc)
+    delta = dt - epoch
+    return (
+        delta.days // 7,
+        (delta.days % 7) * 86400 + delta.seconds + delta.microseconds / 1e6,
+    )
 
 
 def prepare_ephemeris(
@@ -67,69 +64,45 @@ def prepare_ephemeris(
     Prepare ephemeris data for specified constellation (GPS, BeiDou, etc.)
 
     Parameters:
-    nav (dict): Dictionary containing navigation data from RINEX file
+    nav (dict): Dictionary of DataFrames containing navigation data from RINEX file (keyed by constellation)
     constellation (str): Constellation name ('GPS', 'BeiDou', etc.)
 
     Returns:
     dict: Dictionary with prepared ephemeris data for each satellite
     """
-    ephem_dict = {}
-
-    if constellation not in nav:
-        return ephem_dict
+    if constellation not in CONSTELLATION_PARAMS or constellation not in nav:
+        return {}
 
     params = CONSTELLATION_PARAMS[constellation]
+    ephem_dict = {}
 
-    unique_sats = nav[constellation].get_column("sv").unique().to_list()
-
-    for sat_ in unique_sats:
-        ephe = nav[constellation].filter(pl.col("sv") == sat_)
-
-        if ephe.is_empty():
+    for sat in nav[constellation]["sv"].unique().to_list():
+        sat_data = nav[constellation].filter(pl.col("sv") == sat)
+        if sat_data.is_empty():
             continue
 
         # Middle ephemeris
-        mid_idx = len(ephe) // 2
-        ephe_row = ephe[mid_idx]
+        ephe_row = sat_data[len(sat_data) // 2]
 
-        # Convert and normalize time
         ephe_time = _parse_time(
-            time_str=ephe_row["epoch"].item(),
-            time_system=params["time_system"],
-            time_offset=params["time_offset"],
+            ephe_row["epoch"].item(), params.time_system, params.time_offset
         )
+        gps_week, gps_sec = _greg2gps(ephe_time)
 
-        # Calculate GPS week and seconds
-        # gps_week, gps_sec = _greg2gps(ephe_time)
-
-        # Common fields for all constellations
-        ephe_tab = {
+        # Base structure
+        ephem = {
             "constellation": constellation,
-            "sv": sat_,
+            "sv": sat,
             "datetime": ephe_time,
-            # "gps_week": gps_week,
-            # "gps_seconds": gps_sec,
-            "year": ephe_time.year,
-            "month": ephe_time.month,
-            "day": ephe_time.day,
-            "hour": ephe_time.hour,
-            "minute": ephe_time.minute,
-            "second": ephe_time.second,
-            "doy": int(ephe_time.strftime("%j")),
-            "weekday": ephe_time.weekday(),
+            "gps_week": gps_week,
+            "gps_seconds": gps_sec,
+            **{
+                field: ephe_row[field].item()
+                for field in params.fields
+                if field in ephe_row
+            },
         }
 
-        # Constellation-specific fields
-        if constellation in EPHEMERIS_FIELDS:
-            ephe_tab.update(
-                {
-                    field: ephe_row[field].item()
-                    for field in EPHEMERIS_FIELDS[constellation]
-                    if field in ephe_row
-                }
-            )
-
-        fieldname = f"{params['prefix']}{sat_:}"
-        ephem_dict[fieldname] = ephe_tab
+        ephem_dict[f"{params.prefix}{sat}"] = ephem
 
     return ephem_dict
