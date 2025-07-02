@@ -6,6 +6,60 @@ import polars as pl
 from pytecal.satellites import CONSTELLATION_PARAMS, EPHEMERIS_FIELDS
 
 
+def _parse_time(time_str: str, time_system: str, time_offset: timedelta) -> datetime:
+    """
+    Parse RINEX time string with time system awareness
+
+    Parameters:
+    time_str (str): Time string from RINEX file
+    time_system (str): Time system identifier ('GPST', 'BDT', etc.)
+    time_offset (timedelta): Offset to apply for conversion to UTC
+
+    Returns:
+    datetime: Timezone-aware datetime in UTC
+    """
+    if isinstance(time_str, str):
+        # Remove time system suffix if present
+        clean_str = time_str.split(f" {time_system}")[0].strip()
+
+        try:
+            # Parse naive datetime
+            dt = datetime.fromisoformat(clean_str)
+
+            # Apply time system offset and convert to UTC
+            if time_offset:
+                dt = dt - time_offset
+
+            # Make timezone-aware (UTC)
+            return dt.replace(tzinfo=timezone.utc)
+
+        except ValueError as e:
+            raise ValueError(f"Failed to parse time string '{time_str}': {e}")
+
+    raise TypeError(f"Unsupported time format: {type(time_str)}")
+
+
+def _greg2gps(dt: datetime) -> tuple[int, float]:
+    """
+    Convert Gregorian date to GPS week and seconds
+
+    Parameters:
+    dt (datetime): Datetime object to convert
+
+    Returns:
+    tuple: (GPS week, GPS seconds)
+    """
+    # FIXME
+    # GPS epoch is January 6, 1980
+    gps_epoch = datetime(1980, 1, 6)
+    delta = dt - gps_epoch
+
+    gps_week = delta.days // 7
+    gps_seconds = delta.seconds + (delta.days % 7) * 86400 + delta.microseconds / 1e6
+
+    return gps_week, gps_seconds
+
+
 def prepare_ephemeris(
     nav: dict[str, pl.DataFrame], constellation: str
 ) -> dict[str, dict[str, Any]]:
@@ -39,14 +93,14 @@ def prepare_ephemeris(
         ephe_row = ephe[mid_idx]
 
         # Convert and normalize time
-        ephe_time = parse_time(
+        ephe_time = _parse_time(
             time_str=ephe_row["epoch"].item(),
             time_system=params["time_system"],
             time_offset=params["time_offset"],
         )
 
         # Calculate GPS week and seconds
-        # gps_week, gps_sec = greg2gps(ephe_time)
+        # gps_week, gps_sec = _greg2gps(ephe_time)
 
         # Common fields for all constellations
         ephe_tab = {
@@ -79,59 +133,3 @@ def prepare_ephemeris(
         ephem_dict[fieldname] = ephe_tab
 
     return ephem_dict
-
-
-def parse_time(
-    time_str: str, time_system: str = "UTC", time_offset: timedelta = timedelta(0)
-) -> datetime:
-    """
-    Parse RINEX time string with time system awareness
-
-    Parameters:
-    time_str (str): Time string from RINEX file
-    time_system (str): Time system identifier ('GPST', 'BDT', etc.)
-    time_offset (timedelta): Offset to apply for conversion to UTC
-
-    Returns:
-    datetime: Timezone-aware datetime in UTC
-    """
-    if isinstance(time_str, str):
-        # Remove time system suffix if present
-        clean_str = time_str.split(f" {time_system}")[0].strip()
-
-        try:
-            # Parse naive datetime
-            dt = datetime.fromisoformat(clean_str)
-
-            # Apply time system offset and convert to UTC
-            if time_offset:
-                dt = dt - time_offset
-
-            # Make timezone-aware (UTC)
-            return dt.replace(tzinfo=timezone.utc)
-
-        except ValueError as e:
-            raise ValueError(f"Failed to parse time string '{time_str}': {e}")
-
-    raise TypeError(f"Unsupported time format: {type(time_str)}")
-
-
-def greg2gps(dt: datetime) -> tuple[int, float]:
-    """
-    Convert Gregorian date to GPS week and seconds
-
-    Parameters:
-    dt (datetime): Datetime object to convert
-
-    Returns:
-    tuple: (GPS week, GPS seconds)
-    """
-    # FIXME
-    # GPS epoch is January 6, 1980
-    gps_epoch = datetime(1980, 1, 6)
-    delta = dt - gps_epoch
-
-    gps_week = delta.days // 7
-    gps_seconds = delta.seconds + (delta.days % 7) * 86400 + delta.microseconds / 1e6
-
-    return gps_week, gps_seconds
