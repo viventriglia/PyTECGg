@@ -3,7 +3,7 @@ from typing import Any
 
 import polars as pl
 
-from pytec.satellites import CONST_PARAMS, EPHEMERIS_FIELDS
+from pytec.satellites import CONSTELLATION_PARAMS, EPHEMERIS_FIELDS
 
 
 def prepare_ephemeris(
@@ -24,7 +24,7 @@ def prepare_ephemeris(
     if constellation not in nav:
         return ephem_dict
 
-    params = CONST_PARAMS[constellation]
+    params = CONSTELLATION_PARAMS[constellation]
 
     unique_sats = nav[constellation].get_column("sv").unique().to_list()
 

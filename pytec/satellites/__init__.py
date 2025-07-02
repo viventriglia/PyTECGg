@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 # Constellation-specific parameters
-CONST_PARAMS = {
+CONSTELLATION_PARAMS = {
     "GPS": {"time_system": "GPST", "prefix": "G", "time_offset": timedelta(0)},
     "BeiDou": {
         "time_system": "BDT",
@@ -75,6 +75,12 @@ EPHEMERIS_FIELDS: dict[str, list[str]] = {
 }
 
 GNSS_CONSTANTS = {
+    # gm: geocentric gravitational constant (m^3*s^-2)
+    # we: angular rotation of Earth (rad*s^-1)
+    # a: major-axis of Earth ellipsoid (m)
+    # e: numeric eccentricity of ellipsoid (-)
+    # f: flattening of Earth ellipsoid (-)
+    # c20: second degree zonal harmonic coefficient (-)
     "GPS": {
         "gm": 3.986005e14,
         "we": 7.2921151467e-5,
@@ -96,10 +102,5 @@ GNSS_CONSTANTS = {
         "f": 1 / 298.257222101,
     },
 }
-# gm: geocentric gravitational constant (m^3*s^-2)
-# we: angular rotation of Earth (rad*s^-1)
-# a: major-axis of Earth ellipsoid (m)
-# e: numeric eccentricity of ellipsoid (-)
-# f: flattening of Earth ellipsoid (-)
 
 TOL_KEPLER = 0.001
