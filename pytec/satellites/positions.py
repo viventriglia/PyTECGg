@@ -172,3 +172,103 @@ def get_sat_pos_bds(
 
     except Exception as e:
         raise RuntimeError(f"Error computing position for {fieldname}: {str(e)}")
+
+
+def satellite_coordinates_gps(
+    ephem_dict: dict[str, dict[str, Any]], fieldname: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Compute position of GPS satellites using broadcast ephemeris parameters.
+
+    Parameters:
+    - ephem_dict: Dictionary containing ephemeris data for multiple satellites
+    - fieldname: Specific satellite identifier (e.g., 'G01')
+
+    Returns:
+    - pos: [3] array of ECEF coordinates [X, Y, Z] (meters)
+    - aux: [8] array of [tk, Mk, Ek, vk, uk, rk, ik, lamk]
+    """
+    const = GNSS_CONSTANTS["GPS"]
+    gm, we = const["gm"], const["we"]
+
+    REQUIRED_GPS_KEYS = {
+        "toe": "Time of Ephemeris",
+        "sqrta": "Square Root of Semi-Major Axis",
+        "deltaN": "Mean Motion Difference",
+        "m0": "Mean Anomaly at Reference Time",
+        "e": "Eccentricity",
+        "omega": "Argument of Perigee",
+        "cuc": "Latitude Cosine Harmonic Correction",
+        "cus": "Latitude Sine Harmonic Correction",
+        "crc": "Orbit Radius Cosine Harmonic Correction",
+        "crs": "Orbit Radius Sine Harmonic Correction",
+        "cic": "Inclination Cosine Harmonic Correction",
+        "cis": "Inclination Sine Harmonic Correction",
+        "i0": "Inclination at Reference Time",
+        "idot": "Rate of Inclination Angle",
+        "omega0": "Longitude of Ascending Node",
+        "omegaDot": "Rate of Right Ascension",
+        "datetime": "Observation datetime",
+    }
+
+    if fieldname not in ephem_dict:
+        raise KeyError(f"Satellite {fieldname} not found in ephemeris data")
+
+    data = ephem_dict[fieldname]
+    _validate_ephemeris(data, REQUIRED_GPS_KEYS)
+
+    try:
+        # Core computations
+        A = data["sqrta"] ** 2
+        n0 = math.sqrt(gm / (A**3))
+        tk = _compute_time_elapsed(data["datetime"], data["toe"])
+
+        # Orbital parameters
+        n = n0 + data["deltaN"]
+        Mk, Ek, vk = _compute_anomalies(data["e"], data["m0"], n, tk)
+
+        # Harmonic corrections
+        Phik = math.fmod(vk + data["omega"], 2 * math.pi)
+        delta_uk, delta_rk, delta_ik = _apply_harmonic_corrections(
+            Phik,
+            data["cuc"],
+            data["cus"],
+            data["crc"],
+            data["crs"],
+            data["cic"],
+            data["cis"],
+        )
+
+        # Corrected orbital parameters
+        uk = math.fmod(Phik + delta_uk, 2 * math.pi)
+        rk = A * (1 - data["e"] * math.cos(Ek)) + delta_rk
+        ik = data["i0"] + data["idot"] * tk + delta_ik
+
+        # GPS-specific ECEF calculation
+        lamk = math.fmod(
+            data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
+            2 * math.pi,
+        )
+
+        pos = np.array(
+            [
+                rk
+                * (
+                    math.cos(lamk) * math.cos(uk)
+                    - math.sin(lamk) * math.sin(uk) * math.cos(ik)
+                ),
+                rk
+                * (
+                    math.sin(lamk) * math.cos(uk)
+                    + math.cos(lamk) * math.sin(uk) * math.cos(ik)
+                ),
+                rk * math.sin(uk) * math.sin(ik),
+            ],
+            dtype=float,
+        )
+        aux = np.array([tk, Mk, Ek, vk, uk, rk, ik, lamk], dtype=float)
+
+        return pos, aux
+
+    except Exception as e:
+        raise RuntimeError(f"GPS position computation failed for {fieldname}: {str(e)}")
