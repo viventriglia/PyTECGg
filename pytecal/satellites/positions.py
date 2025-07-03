@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 import numpy as np
 import math
 import datetime
@@ -171,8 +171,10 @@ def satellite_coordinates_bds(
         raise RuntimeError(f"Error computing position for {sv_id}: {str(e)}")
 
 
-def satellite_coordinates_gps(
-    ephem_dict: dict[str, dict[str, Any]], sv_id: str
+def satellite_coordinates(
+    ephem_dict: dict[str, dict[str, Any]],
+    sv_id: str,
+    gnss_system: Literal["GPS", "Galileo", "QZSS"],
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute position of GPS satellites using broadcast ephemeris parameters.
@@ -180,15 +182,20 @@ def satellite_coordinates_gps(
     Parameters:
     - ephem_dict: Dictionary containing ephemeris data for multiple satellites
     - sv_id: Specific space vehicle (satellite) identifier (e.g., 'G01')
+    - gnss_system: GNSS constellation ('GPS', 'Galileo', 'QZSS')
 
     Returns:
     - pos: [3] array of ECEF coordinates [X, Y, Z] (meters)
     - aux: [8] array of [tk, Mk, Ek, vk, uk, rk, ik, lamk]
     """
-    const = GNSS_CONSTANTS["GPS"]
+    if gnss_system not in GNSS_CONSTANTS:
+        raise ValueError(
+            "Unsupported GNSS system: choose one of ['GPS', 'Galileo', 'QZSS']"
+        )
+    const = GNSS_CONSTANTS[gnss_system]
     gm, we = const.gm, const.we
 
-    REQUIRED_GPS_KEYS = {
+    REQUIRED_KEYS = {
         "toe": "Time of Ephemeris",
         "sqrta": "Square Root of Semi-Major Axis",
         "deltaN": "Mean Motion Difference",
@@ -212,7 +219,7 @@ def satellite_coordinates_gps(
         raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
     data = ephem_dict[sv_id]
-    _validate_ephemeris(data, REQUIRED_GPS_KEYS)
+    _validate_ephemeris(data, REQUIRED_KEYS)
 
     try:
         # Core computations
@@ -241,12 +248,13 @@ def satellite_coordinates_gps(
         rk = A * (1 - data["e"] * math.cos(Ek)) + delta_rk
         ik = data["i0"] + data["idot"] * tk + delta_ik
 
-        # GPS-specific ECEF calculation
+        # Position in orbital plane
         lamk = math.fmod(
             data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
             2 * math.pi,
         )
 
+        # ECEF coordinates calculation
         pos = np.array(
             [
                 rk
@@ -268,4 +276,6 @@ def satellite_coordinates_gps(
         return pos, aux
 
     except Exception as e:
-        raise RuntimeError(f"GPS position computation failed for {sv_id}: {str(e)}")
+        raise RuntimeError(
+            f"{gnss_system} position computation failed for {sv_id}: {str(e)}"
+        )
