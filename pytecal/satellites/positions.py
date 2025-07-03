@@ -70,14 +70,14 @@ def _apply_geo_correction(
 
 
 def satellite_coordinates_bds(
-    ephem_dict: dict[str, dict[str, Any]], fieldname: str
+    ephem_dict: dict[str, dict[str, Any]], sv_id: str
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute position of BeiDou satellites using broadcast ephemeris parameters.
 
     Parameters:
     - ephem_dict: Dictionary containing ephemeris data for multiple satellites
-    - fieldname: Specific satellite identifier to process (e.g., 'C01')
+    - sv_id: Specific space vehicle (satellite) identifier to process (e.g., 'C01')
 
     Returns:
     - pos: [3] array containing satellite coordinates [X, Y, Z]
@@ -86,7 +86,7 @@ def satellite_coordinates_bds(
 
     Raises:
     - ValueError: If required ephemeris data is missing or invalid
-    - KeyError: If the specified fieldname is not found in ephem_dict
+    - KeyError: If the specified sv_id is not found in ephem_dict
     """
     const = GNSS_CONSTANTS["BeiDou"]
     mu, we = const.gm, const.we
@@ -111,10 +111,10 @@ def satellite_coordinates_bds(
         "datetime": "Observation datetime",
     }
 
-    if fieldname not in ephem_dict:
-        raise KeyError(f"Satellite {fieldname} not found in ephemeris data")
+    if sv_id not in ephem_dict:
+        raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
-    data = ephem_dict[fieldname]
+    data = ephem_dict[sv_id]
     _validate_ephemeris(data, REQUIRED_BDS_KEYS)
 
     try:
@@ -168,18 +168,18 @@ def satellite_coordinates_bds(
         )
 
     except Exception as e:
-        raise RuntimeError(f"Error computing position for {fieldname}: {str(e)}")
+        raise RuntimeError(f"Error computing position for {sv_id}: {str(e)}")
 
 
 def satellite_coordinates_gps(
-    ephem_dict: dict[str, dict[str, Any]], fieldname: str
+    ephem_dict: dict[str, dict[str, Any]], sv_id: str
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute position of GPS satellites using broadcast ephemeris parameters.
 
     Parameters:
     - ephem_dict: Dictionary containing ephemeris data for multiple satellites
-    - fieldname: Specific satellite identifier (e.g., 'G01')
+    - sv_id: Specific space vehicle (satellite) identifier (e.g., 'G01')
 
     Returns:
     - pos: [3] array of ECEF coordinates [X, Y, Z] (meters)
@@ -208,10 +208,10 @@ def satellite_coordinates_gps(
         "datetime": "Observation datetime",
     }
 
-    if fieldname not in ephem_dict:
-        raise KeyError(f"Satellite {fieldname} not found in ephemeris data")
+    if sv_id not in ephem_dict:
+        raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
-    data = ephem_dict[fieldname]
+    data = ephem_dict[sv_id]
     _validate_ephemeris(data, REQUIRED_GPS_KEYS)
 
     try:
@@ -268,4 +268,4 @@ def satellite_coordinates_gps(
         return pos, aux
 
     except Exception as e:
-        raise RuntimeError(f"GPS position computation failed for {fieldname}: {str(e)}")
+        raise RuntimeError(f"GPS position computation failed for {sv_id}: {str(e)}")
