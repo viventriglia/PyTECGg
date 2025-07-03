@@ -189,7 +189,7 @@ CONSTELLATION_PARAMS = {
         fields=EPHEMERIS_FIELDS["Galileo"],
     ),
     "QZSS": ConstellationParams(
-        time_system="GPST",
+        time_system="QZSST",
         prefix="J",
         time_offset=timedelta(0),
         fields=EPHEMERIS_FIELDS["QZSS"],
