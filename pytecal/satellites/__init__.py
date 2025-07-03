@@ -186,12 +186,22 @@ GNSS_CONSTANTS: dict[str, GNSSConstants] = {
         e=0.0818191908426215,
         f=1 / 298.257223563,
     ),
+    "BeiDou": GNSSConstants(
+        gm=3.986004418e14, we=7.292115e-5, a=6378137, f=1 / 298.257222101
+    ),
     "GLONASS": GNSSConstants(
         gm=3.9860044e14, we=7.292115e-5, a=6378136, c20=-1082.63e-6
     ),
     "Galileo": GNSSConstants(gm=3.986004418e14, we=7.2921151467e-5, a=6378137),
-    "BeiDou": GNSSConstants(
-        gm=3.986004418e14, we=7.292115e-5, a=6378137, f=1 / 298.257222101
+    "QZSS": GNSSConstants(
+        gm=3.986005e14,
+        we=7.2921151467e-5,
+        a=6378137,
+    ),
+    "NavIC": GNSSConstants(
+        gm=3.986005e14,
+        we=7.2921151467e-5,
+        a=6378137,
     ),
 }
 
