@@ -69,129 +69,28 @@ def _apply_geo_correction(
     return Xk, Yk, Zk
 
 
-def satellite_coordinates_bds(
-    ephem_dict: dict[str, dict[str, Any]], sv_id: str
-) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Compute position of BeiDou satellites using broadcast ephemeris parameters.
-
-    Parameters:
-    - ephem_dict: Dictionary containing ephemeris data for multiple satellites
-    - sv_id: Specific space vehicle (satellite) identifier to process (e.g., 'C01')
-
-    Returns:
-    - pos: [3] array containing satellite coordinates [X, Y, Z]
-    - aux: [8] array with auxiliary variables from computations
-        [tk, Mk, Ek, vk, uk, rk, ik, Omegak]
-
-    Raises:
-    - ValueError: If required ephemeris data is missing or invalid
-    - KeyError: If the specified sv_id is not found in ephem_dict
-    """
-    const = GNSS_CONSTANTS["BeiDou"]
-    mu, we = const.gm, const.we
-
-    REQUIRED_BDS_KEYS = {
-        "toe": "Time of Ephemeris",
-        "sqrta": "Square Root of Semi-Major Axis",
-        "deltaN": "Mean Motion Difference",
-        "m0": "Mean Anomaly at Reference Time",
-        "e": "Eccentricity",
-        "omega": "Argument of Perigee",
-        "cuc": "Latitude Cosine Harmonic Correction",
-        "cus": "Latitude Sine Harmonic Correction",
-        "crc": "Orbit Radius Cosine Harmonic Correction",
-        "crs": "Orbit Radius Sine Harmonic Correction",
-        "cic": "Inclination Cosine Harmonic Correction",
-        "cis": "Inclination Sine Harmonic Correction",
-        "i0": "Inclination at Reference Time",
-        "idot": "Rate of Inclination Angle",
-        "omega0": "Longitude of Ascending Node",
-        "omegaDot": "Rate of Right Ascension",
-        "datetime": "Observation datetime",
-    }
-
-    if sv_id not in ephem_dict:
-        raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
-
-    data = ephem_dict[sv_id]
-    _validate_ephemeris(data, REQUIRED_BDS_KEYS)
-
-    try:
-        # Core computations
-        A = data["sqrta"] * data["sqrta"]
-        n0 = math.sqrt(mu / (A * A * A))
-        tk = _compute_time_elapsed(data["datetime"], data["toe"])
-
-        # Orbital parameters
-        n = n0 + data["deltaN"]
-        Mk, Ek, vk = _compute_anomalies(data["e"], data["m0"], n, tk)
-
-        # Harmonic corrections
-        Phik = math.fmod(vk + data["omega"], 2 * math.pi)
-        delta_uk, delta_rk, delta_ik = _apply_harmonic_corrections(
-            Phik,
-            data["cuc"],
-            data["cus"],
-            data["crc"],
-            data["crs"],
-            data["cic"],
-            data["cis"],
-        )
-
-        # Corrected orbital parameters
-        uk = math.fmod(Phik + delta_uk, 2 * math.pi)
-        rk = A * (1 - data["e"] * math.cos(Ek)) + delta_rk
-        ik = data["i0"] + data["idot"] * tk + delta_ik
-
-        # Position in orbital plane
-        xDash, yDash = rk * math.cos(uk), rk * math.sin(uk)
-
-        # Longitude of ascending node
-        Omegak = math.fmod(
-            data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
-            2 * math.pi,
-        )
-
-        # ECEF coordinates
-        Xk = xDash * math.cos(Omegak) - yDash * math.cos(ik) * math.sin(Omegak)
-        Yk = xDash * math.sin(Omegak) + yDash * math.cos(ik) * math.cos(Omegak)
-        Zk = yDash * math.sin(ik)
-
-        # GEO special case
-        if data["i0"] <= 20 * (math.pi / 180):
-            Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)
-
-        return (
-            np.array([Xk, Yk, Zk], dtype=float),
-            np.array([tk, Mk, Ek, vk, uk, rk, ik, Omegak], dtype=float),
-        )
-
-    except Exception as e:
-        raise RuntimeError(f"Error computing position for {sv_id}: {str(e)}")
-
-
 def satellite_coordinates(
     ephem_dict: dict[str, dict[str, Any]],
     sv_id: str,
-    gnss_system: Literal["GPS", "Galileo", "QZSS"],
+    gnss_system: Literal["GPS", "Galileo", "QZSS", "BeiDou"],
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Compute position of GPS satellites using broadcast ephemeris parameters.
+    Compute GNSS satellite position in ECEF coordinates using broadcast ephemeris.
 
     Parameters:
-    - ephem_dict: Dictionary containing ephemeris data for multiple satellites
-    - sv_id: Specific space vehicle (satellite) identifier (e.g., 'G01')
-    - gnss_system: GNSS constellation ('GPS', 'Galileo', 'QZSS')
+    - ephem_dict: Dictionary containing ephemeris data
+    - sv_id: Satellite identifier (e.g., 'E23')
+    - gnss_system: GNSS constellation ('GPS', 'Galileo', 'QZSS' or 'BeiDou')
 
     Returns:
     - pos: [3] array of ECEF coordinates [X, Y, Z] (meters)
-    - aux: [8] array of [tk, Mk, Ek, vk, uk, rk, ik, lamk]
+    - aux: [8] array of auxiliary variables [tk, Mk, Ek, vk, uk, rk, ik, lamk]
     """
     if gnss_system not in GNSS_CONSTANTS:
         raise ValueError(
-            "Unsupported GNSS system: choose one of ['GPS', 'Galileo', 'QZSS']"
+            "Unsupported GNSS system: choose one of ['GPS', 'Galileo', 'QZSS', 'BeiDou']"
         )
+
     const = GNSS_CONSTANTS[gnss_system]
     gm, we = const.gm, const.we
 
@@ -248,29 +147,26 @@ def satellite_coordinates(
         rk = A * (1 - data["e"] * math.cos(Ek)) + delta_rk
         ik = data["i0"] + data["idot"] * tk + delta_ik
 
-        # Position in orbital plane
+        # Longitude of ascending node
         lamk = math.fmod(
             data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
             2 * math.pi,
         )
 
-        # ECEF coordinates calculation
-        pos = np.array(
-            [
-                rk
-                * (
-                    math.cos(lamk) * math.cos(uk)
-                    - math.sin(lamk) * math.sin(uk) * math.cos(ik)
-                ),
-                rk
-                * (
-                    math.sin(lamk) * math.cos(uk)
-                    + math.cos(lamk) * math.sin(uk) * math.cos(ik)
-                ),
-                rk * math.sin(uk) * math.sin(ik),
-            ],
-            dtype=float,
-        )
+        # Position in orbital plane
+        xDash, yDash = rk * math.cos(uk), rk * math.sin(uk)
+
+        # ECEF coordinates
+        Xk = xDash * math.cos(lamk) - yDash * math.cos(ik) * math.sin(lamk)
+        Yk = xDash * math.sin(lamk) + yDash * math.cos(ik) * math.cos(lamk)
+        Zk = yDash * math.sin(ik)
+
+        if gnss_system == "BeiDou":
+            # GEO orbits correction
+            if data["i0"] <= 20 * (math.pi / 180):
+                Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)
+
+        pos = np.array([Xk, Yk, Zk], dtype=float)
         aux = np.array([tk, Mk, Ek, vk, uk, rk, ik, lamk], dtype=float)
 
         return pos, aux
