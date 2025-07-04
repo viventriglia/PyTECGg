@@ -103,9 +103,6 @@ def glonass_satellite_coordinates(
     te = eph_time.hour * 3600 + eph_time.minute * 60 + eph_time.second
     ymd = [eph_time.year, eph_time.month, eph_time.day]
 
-    print(f"gps_seconds: {data['gps_seconds']}")
-    print(f"eph_time: {eph_time.isoformat()}")
-
     # GMST at eph_time
     theta_ge = get_gmst(ymd) + const.we * (te % 86400)
     rot_matrix = np.array(
