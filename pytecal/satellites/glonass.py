@@ -58,17 +58,20 @@ def get_gmst(ymd: list) -> float:
 def glonass_satellite_coordinates(
     ephem_dict: Dict[str, Dict[str, Any]],
     sv_id: str,
+    delta_seconds: float = 300.0,  # default: 5 minuti dopo l'epoca delle effemeridi
     t_res: float = 60.0,
     rtol: float = 1e-8,
     atol: float = 1e-11,
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     """
-    Compute GLONASS satellite position using SciPy's ODE solver.
+    Compute GLONASS satellite position from ephemeris data only,
+    propagating motion for a given number of seconds from ephemeris time.
 
     Args:
         ephem_dict: Dictionary containing ephemeris data
         sv_id: Satellite identifier (e.g., 'R01')
-        t_res: Maximum time step for output [seconds]
+        delta_seconds: Time in seconds to integrate from eph_time (can be negative)
+        t_res: Time resolution for ODE solver output
         rtol: Relative tolerance for solver
         atol: Absolute tolerance for solver
 
@@ -77,7 +80,6 @@ def glonass_satellite_coordinates(
         aux: Dictionary with solver information
     """
     data = ephem_dict[sv_id]
-    obs_time = data["datetime"]
 
     # Converting km/s → m/s
     re = np.array([data["satPosX"], data["satPosY"], data["satPosZ"]]) * 1000
@@ -88,8 +90,8 @@ def glonass_satellite_coordinates(
         np.array(
             [
                 0.0 if data["accelX"] is None else data["accelX"],
-                data["accelY"],
-                data["accelZ"],
+                0.0 if data["accelY"] is None else data["accelY"],
+                0.0 if data["accelZ"] is None else data["accelZ"],
             ]
         )
         * 1000
@@ -99,11 +101,12 @@ def glonass_satellite_coordinates(
         data["gps_seconds"], datetime.timezone.utc
     )
     te = eph_time.hour * 3600 + eph_time.minute * 60 + eph_time.second
-    tff = obs_time.hour * 3600 + obs_time.minute * 60 + obs_time.second
+    ymd = [eph_time.year, eph_time.month, eph_time.day]
 
-    ymd = [obs_time.year, obs_time.month, obs_time.day]
+    print(f"gps_seconds: {data['gps_seconds']}")
+    print(f"eph_time: {eph_time.isoformat()}")
 
-    # Convert to inertial frame at reference epoch
+    # GMST at eph_time
     theta_ge = get_gmst(ymd) + const.we * (te % 86400)
     rot_matrix = np.array(
         [
@@ -113,18 +116,14 @@ def glonass_satellite_coordinates(
         ]
     )
 
-    # Initial state in inertial frame [X, Y, Z, VX, VY, VZ]
+    # Inertial coordinates at epoch
     ra = rot_matrix @ re
     va = rot_matrix @ ve + const.we * np.array([-ra[1], ra[0], 0])
     initial_state = np.concatenate([ra, va])
 
-    # Time span for integration
-    # t_span = (0, tff - te) if tff >= te else (tff - te, 0)
+    # Integration time span
+    t_span = (0, delta_seconds) if delta_seconds >= 0 else (delta_seconds, 0)
 
-    delta_t = (obs_time - eph_time).total_seconds()
-    t_span = (0, delta_t) if delta_t >= 0 else (delta_t, 0)
-
-    # Solve the ODE (Runge-Kutta 4/5 method)
     sol = solve_ivp(
         fun=lambda t, y: glonass_derivatives(t, y, const, ae),
         t_span=t_span,
@@ -137,10 +136,8 @@ def glonass_satellite_coordinates(
         atol=atol,
     )
 
-    # return sol, t_span, initial_state, te, tff, theta_ge
-
-    # Transform back to ECEF at observation time
-    theta_gi = theta_ge + const.we * (tff - te)
+    # Rotazione indietro in ECEF dopo delta_seconds
+    theta_gi = theta_ge + const.we * delta_seconds
     rot_matrix_obs = np.array(
         [
             [math.cos(theta_gi), math.sin(theta_gi), 0],
@@ -149,16 +146,16 @@ def glonass_satellite_coordinates(
         ]
     )
 
-    # Get final position (last point in solution)
     inertial_pos = sol.y[:3, -1]
     ecef_pos = rot_matrix_obs @ inertial_pos
 
-    # Prepare auxiliary information
     aux = {
         "solution": sol,
-        "integration_time": tff - te,
+        "integration_time": delta_seconds,
         "initial_state": initial_state,
         "rotation_matrix": rot_matrix_obs,
+        "eph_time": eph_time,
+        "final_time": eph_time + datetime.timedelta(seconds=delta_seconds),
     }
 
     return ecef_pos, aux
