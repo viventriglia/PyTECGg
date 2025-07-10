@@ -1701,6 +1701,26 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pymap3d"
+version = "3.2.0"
+description = "pure Python (no prereqs) coordinate conversions, following convention of several popular Matlab routines."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pymap3d-3.2.0-py3-none-any.whl", hash = "sha256:fccd44f2f6021a95adec19771c603b8dac104eab120d863c463d76b9bc298669"},
+    {file = "pymap3d-3.2.0.tar.gz", hash = "sha256:355e87c559ac681cba34a7fef5bcec3ad791f95336a0fdaf15e0335f48a309a2"},
+]
+
+[package.extras]
+core = ["numpy (>=1.10.0)", "python-dateutil"]
+coverage = ["pytest-cov"]
+format = ["black[jupyter]", "isort"]
+full = ["astropy", "xarray"]
+lint = ["flake8", "flake8-blind-except", "flake8-bugbear", "flake8-builtins", "mypy", "types-python-dateutil", "types-requests"]
+proj = ["pyproj"]
+tests = ["pytest"]
+
+[[package]]
 name = "pytest"
 version = "8.4.1"
 description = "pytest: simple powerful testing with Python"
@@ -2509,4 +2529,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "b4b2002d8c5384ad5abdaedfaac7049519feef2105f91ee6c40f61b704a33546"
+content-hash = "256d88140f727eed4305168b9985c8f1a23c5a2f006f113d7537d2a70ee268e2"
