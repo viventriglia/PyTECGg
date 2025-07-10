@@ -36,53 +36,38 @@ def calculate_ipp(
     xA, yA, zA = rec_ecef_coords
     xB, yB, zB = sat_ecef_coords
 
-    # Center of Earth
-    xc, yc, zc = 0.0, 0.0, 0.0
-
-    # Two points defining the line from receiver to satellite
-    x1, y1, z1 = xA, yA, zA
-    x2, y2, z2 = xB, yB, zB
-
-    a = (x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2
-    b = 2 * ((x2 - x1) * (x1 - xc) + (y2 - y1) * (y1 - yc) + (z2 - z1) * (z1 - zc))
-    c = (
-        xc**2
-        + yc**2
-        + zc**2
-        + x1**2
-        + y1**2
-        + z1**2
-        - 2 * (xc * x1 + yc * y1 + zc * z1)
-        - r**2
-    )
+    # Coefficients for quadratic equation
+    a = (xB - xA) ** 2 + (yB - yA) ** 2 + (zB - zA) ** 2
+    b = 2 * ((xB - xA) * xA + (yB - yA) * yA + (zB - zA) * zA)
+    c = xA**2 + yA**2 + zA**2 - r**2
     discriminant = b**2 - 4 * a * c
 
     if discriminant < 0:
         # No real solution
-        x_ipp, y_ipp, z_ipp = 0.0, 0.0, 0.0
-    else:
-        t1 = (-b + np.sqrt(discriminant)) / (2 * a)
-        t2 = (-b - np.sqrt(discriminant)) / (2 * a)
+        return None, None, None, None
 
-        # We take the solution between 0 and 1 (point between receiver and satellite)
-        t = min(max(t1, t2), 1.0)
+    t1 = (-b + np.sqrt(discriminant)) / (2 * a)
+    t2 = (-b - np.sqrt(discriminant)) / (2 * a)
 
-        x_ipp = x1 + (x2 - x1) * t
-        y_ipp = y1 + (y2 - y1) * t
-        z_ipp = z1 + (z2 - z1) * t
+    # We take the solution between 0 and 1 (point between receiver and satellite)
+    valid_ts = [t for t in (t1, t2) if 0 <= t <= 1]
+    if not valid_ts:
+        return None, None, None, None
+    t = min(valid_ts)
+
+    x_ipp = xA + (xB - xA) * t
+    y_ipp = yA + (yB - yA) * t
+    z_ipp = zA + (zB - zA) * t
 
     # Convert IPP ECEF coordinates to geodetic (latitude, longitude, altitude)
-    lat, lon, alt = ecef2geodetic(x_ipp, y_ipp, z_ipp)
+    lat, lon, _ = ecef2geodetic(x_ipp, y_ipp, z_ipp)
 
     # Calculate azimuth and elevation angles
-    # First convert receiver position to geodetic
     rec_lat, rec_lon, rec_alt = ecef2geodetic(xA, yA, zA)
-
-    # Calculate azimuth and elevation
     azi, ele, _ = ecef2aer(
-        sat_ecef_coords[0],
-        sat_ecef_coords[1],
-        sat_ecef_coords[2],
+        xB,
+        yB,
+        zB,
         rec_lat,
         rec_lon,
         rec_alt,
