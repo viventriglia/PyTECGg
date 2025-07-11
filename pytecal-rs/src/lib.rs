@@ -6,7 +6,7 @@ use std::path::Path;
 use std::collections::{BTreeSet, BTreeMap};
 
 #[pyfunction]
-fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
+fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64), String)> {
     let path = Path::new(path);
     
     if !path.exists() {
@@ -26,8 +26,9 @@ fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
         ));
     }
 
-    // Extract approximate rx coordinates (ECEF)
+    // Extract approximate rx coordinates (ECEF) and RINEX version
     let (x, y, z) = rinex.header.rx_position.unwrap_or((f64::NAN, f64::NAN, f64::NAN));
+    let version = rinex.header.version.to_string();
 
     let mut epochs = Vec::new();
     let mut prns = Vec::new();
@@ -64,7 +65,7 @@ fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64))> {
     ]
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-    Ok((PyDataFrame(df), (x, y, z)))
+    Ok((PyDataFrame(df), (x, y, z), version))
 }
 
 #[pyfunction]
@@ -95,7 +96,7 @@ fn read_rinex_nav(path: &str) -> PyResult<BTreeMap<String, PyDataFrame>> {
             _ => "Unknown",
         }.to_string();
 
-        let sv_id = nav_key.sv.prn.to_string(); // Rimuove il prefisso della costellazione
+        let sv_id = nav_key.sv.prn.to_string();
         let epoch_str = nav_key.epoch.to_string();
 
         // Crea una mappa per tutti i parametri
