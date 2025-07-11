@@ -24,6 +24,9 @@ python_files = "test_*.py"
 python_functions = "test_*"
 addopts = "-v --cov=pytecal --cov-report=term-missing"
 
+[tool.coverage.run]
+omit = ["pytecal/rinex.py"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
