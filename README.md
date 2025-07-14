@@ -11,7 +11,7 @@ Total Electron Content (**TEC**) reconstruction with **GNSS** data – a Python 
 
 - [What is it?](#what-is-it)
 
-- [How can I run it?](#how-can-i-run-it)
+- [Example usage](#example-usage)
 
 - [How can I help?](#how-can-i-help)
 
@@ -24,7 +24,7 @@ Why calibration matters? Because without it, you don’t actually know the true 
 This package:
 - is open source: read and access all the code!
 - supports all modern GNSS constellations, codes and signals:
-    - GPS, Galileo, BeiDou and QZSS
+    - GPS, Galileo, BeiDou, GLONASS and QZSS
 - supports RINEX V2-3-4
 - provides seamless de-compression for RINEX files
 
@@ -33,10 +33,38 @@ This package:
 | *Generated image of Earth's ionosphere with GNSS satellites studying TEC* |
 
 
-## How can I run it?
+## Example usage
 
-TODO
+### Read RINEX files — fast ⚡
 
+```python
+from pytecalrs import read_rinex_nav, read_rinex_obs
+
+# Read a RINEX navigation file
+nav_dict = read_rinex_nav("./path/to/your/file.rnx")
+
+# Read a RINEX observation file, and extract receiver position and RINEX version
+obs_data, rec_pos, rinex_version = read_rinex_obs("./path/to/your/file.rnx")
+```
+
+### Prepare Satellite Ephemerides 🛰️
+
+```python
+from pytecal.satellites.ephemeris import prepare_ephemeris
+
+ephem_dict = prepare_ephemeris(nav_dict, constellation='Galileo')
+```
+
+Supported constellations are: ```'Galileo', 'GPS', 'GLONASS', 'BeiDou'```
+
+### Compute Satellite Coordinates 🧭
+
+```python
+from pytecal.satellites.positions import satellite_coordinates
+
+# Compute the position of a Galileo satellite
+satellite_coordinates(ephem_dict=ephem_dict_gal, sv_id='E25', gnss_system='Galileo')
+```
 
 ## How can I help?
 
