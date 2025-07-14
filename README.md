@@ -62,8 +62,8 @@ Supported constellations are: ```'Galileo', 'GPS', 'GLONASS', 'BeiDou'```
 ```python
 from pytecal.satellites.positions import satellite_coordinates
 
-# Compute the position of a Galileo satellite
-satellite_coordinates(ephem_dict=ephem_dict_gal, sv_id='E25', gnss_system='Galileo')
+# Compute the position of a Galileo satellite (space vehicle #25)
+satellite_coordinates(ephem_dict=ephem_dict, sv_id='E25', gnss_system='Galileo')
 ```
 
 ## How can I help?
