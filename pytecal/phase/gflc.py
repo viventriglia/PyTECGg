@@ -4,7 +4,7 @@ from typing import Optional, Literal
 from . import OBS_MAPPING, FREQ_BANDS, C
 
 
-def _calculate_gflc(
+def _calculate_gflc_phase(
     phase1: pl.Expr, phase2: pl.Expr, freq1: pl.Expr, freq2: pl.Expr
 ) -> pl.Expr:
     """
@@ -22,6 +22,24 @@ def _calculate_gflc(
     lambda2 = C / freq2
     pr_to_tec = (1 / 40.308) * (freq1**2 * freq2**2) / (freq1**2 - freq2**2) / 1e16
     return (phase1 * lambda1 - phase2 * lambda2) * pr_to_tec
+
+
+def _calculate_gflc_code(
+    code1: pl.Expr, code2: pl.Expr, freq1: pl.Expr, freq2: pl.Expr
+) -> pl.Expr:
+    """
+    Calculate the geometry-free linear combination (GFLC) from two code observations
+
+    Args:
+        code1 (pl.Expr): Code observation for frequency 1
+        code2 (pl.Expr): Code observation for frequency 2
+        freq1 (pl.Expr): Frequency 1 in Hz
+        freq2 (pl.Expr): Frequency 2 in Hz
+    Returns:
+        pl.Expr: Expression for the calculated GFLC
+    """
+    pr_to_tec = (1 / 40.308) * (freq1**2 * freq2**2) / (freq1**2 - freq2**2) / 1e16
+    return (code1 - code2) * pr_to_tec
 
 
 def process_observations(
@@ -63,6 +81,7 @@ def process_observations(
 
     # Frequency handling
     if system == "R":
+        # FIXME
         if glonass_freq is None:
             raise ValueError("glonass_freq is required for GLONASS processing")
         df_pivot = df_pivot.with_columns(
@@ -84,5 +103,5 @@ def process_observations(
             )
 
     return df_pivot.with_columns(
-        _calculate_gflc(pl.col(obs1), pl.col(obs2), freq1, freq2).alias("GFLC")
+        _calculate_gflc_phase(pl.col(obs1), pl.col(obs2), freq1, freq2).alias("GFLC")
     )
