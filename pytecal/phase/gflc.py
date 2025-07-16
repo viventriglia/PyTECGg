@@ -103,5 +103,7 @@ def process_observations(
             )
 
     return df_pivot.with_columns(
-        _calculate_gflc_phase(pl.col(obs1), pl.col(obs2), freq1, freq2).alias("GFLC")
+        _calculate_gflc_phase(pl.col(obs1), pl.col(obs2), freq1, freq2).alias(
+            "gflc_phase"
+        ),
     )
