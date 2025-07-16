@@ -6,72 +6,89 @@ from . import RE
 
 
 def calculate_ipp(
-    rec_ecef_coords: Tuple[float, float, float],
-    sat_ecef_coords: Tuple[float, float, float],
+    rec_ecef: Tuple[float, float, float],
+    sat_ecef_array: np.ndarray,
     h_ipp: float,
-) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
+    rec_geodetic: Optional[Tuple[float, float, float]] = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Calculate the Ionospheric Pierce Point (IPP) location given the receiver and satellite ECEF positions
-    and the ionospheric shell height.
+    Calculate the Ionospheric Pierce Point (IPP) location; it allows pre-computation
+    of receiver geodetic coordinates to avoid redundant calculations
 
     Parameters:
-    - rec_ecef_coords: Receiver ECEF coordinates (x, y, z) in meters
-    - sat_ecef_coords: Satellite ECEF coordinates (x, y, z) in meters
+    - rec_ecef: Receiver ECEF coordinates (x, y, z) in meters
+    - sat_ecef: Satellite ECEF coordinates (x, y, z) in meters
     - h_ipp: Mean height of the ionosphere shell in meters
+    - rec_geodetic: Optional pre-computed receiver geodetic coordinates (lat, lon, alt) in degrees/meters
 
     Returns:
-    - lat: Latitude of IPP in degrees (None, if calculation fails)
-    - lon: Longitude of IPP in degrees (None, if calculation fails)
-    - azi: Azimuth angle from receiver to satellite in degrees (None, if calculation fails)
-    - ele: Elevation angle from receiver to satellite in degrees (None, if calculation fails)
+    - lat_ipp, lon_ipp, azi, ele: (N,) NumPy array with:
+        - lat: Latitude of IPP in degrees (None, if calculation fails)
+        - lon: Longitude of IPP in degrees (None, if calculation fails)
+        - azi: Azimuth angle from receiver to satellite in degrees (None, if calculation fails)
+        - ele: Elevation angle from receiver to satellite in degrees (None, if calculation fails)
     """
+    xA, yA, zA = rec_ecef
+    xB, yB, zB = sat_ecef_array[:, 0], sat_ecef_array[:, 1], sat_ecef_array[:, 2]
 
-    # Check for NaN values in satellite position
-    if any(np.isnan(coord) for coord in sat_ecef_coords):
-        return None, None, None, None
+    dx = xB - xA
+    dy = yB - yA
+    dz = zB - zA
 
-    # Ionospheric shell radius in meters
-    r = h_ipp + RE
+    a = dx**2 + dy**2 + dz**2
+    b = 2 * (dx * xA + dy * yA + dz * zA)
+    c = xA**2 + yA**2 + zA**2 - (RE + h_ipp) ** 2
 
-    xA, yA, zA = rec_ecef_coords
-    xB, yB, zB = sat_ecef_coords
+    disc = b**2 - 4 * a * c
+    mask = disc >= 0
 
-    # Coefficients for quadratic equation
-    a = (xB - xA) ** 2 + (yB - yA) ** 2 + (zB - zA) ** 2
-    b = 2 * ((xB - xA) * xA + (yB - yA) * yA + (zB - zA) * zA)
-    c = xA**2 + yA**2 + zA**2 - r**2
-    discriminant = b**2 - 4 * a * c
+    # Init arrays with NaN
+    lat_ipp = np.full_like(xB, np.nan, dtype=float)
+    lon_ipp = np.full_like(xB, np.nan, dtype=float)
+    azi = np.full_like(xB, np.nan, dtype=float)
+    ele = np.full_like(xB, np.nan, dtype=float)
 
-    if discriminant < 0:
-        # No real solution
-        return None, None, None, None
+    if not np.any(mask):
+        return lat_ipp, lon_ipp, azi, ele
 
-    t1 = (-b + np.sqrt(discriminant)) / (2 * a)
-    t2 = (-b - np.sqrt(discriminant)) / (2 * a)
+    # Compute valid solutions
+    sqrt_disc = np.sqrt(disc[mask])
+    denom = 2 * a[mask]
 
-    # We take the solution between 0 and 1 (point between receiver and satellite)
-    valid_ts = [t for t in (t1, t2) if 0 <= t <= 1]
-    if not valid_ts:
-        return None, None, None, None
-    t = min(valid_ts)
+    t1 = (-b[mask] + sqrt_disc) / denom
+    t2 = (-b[mask] - sqrt_disc) / denom
 
-    x_ipp = xA + (xB - xA) * t
-    y_ipp = yA + (yB - yA) * t
-    z_ipp = zA + (zB - zA) * t
+    # Choose valid t (0 <= t <= 1), preferring the smaller one
+    t1_valid = (0 <= t1) & (t1 <= 1)
+    t2_valid = (0 <= t2) & (t2 <= 1)
 
-    # Convert IPP ECEF coordinates to geodetic (latitude, longitude, altitude)
-    lat, lon, _ = ecef2geodetic(x_ipp, y_ipp, z_ipp)
-
-    # Calculate azimuth and elevation angles
-    rec_lat, rec_lon, rec_alt = ecef2geodetic(xA, yA, zA)
-    azi, ele, _ = ecef2aer(
-        xB,
-        yB,
-        zB,
-        rec_lat,
-        rec_lon,
-        rec_alt,
-        deg=True,
+    t = np.where(
+        t1_valid & t2_valid,
+        np.minimum(t1, t2),
+        np.where(t1_valid, t1, np.where(t2_valid, t2, np.nan)),
     )
 
-    return lat, lon, azi, ele
+    valid = ~np.isnan(t)
+
+    dxv, dyv, dzv = dx[mask][valid], dy[mask][valid], dz[mask][valid]
+    tv = t[valid]
+
+    x_ipp = xA + dxv * tv
+    y_ipp = yA + dyv * tv
+    z_ipp = zA + dzv * tv
+
+    # Geodetic coordinates of IPP
+    latv, lonv, _ = ecef2geodetic(x_ipp, y_ipp, z_ipp)
+
+    # Azimuth and elevation angles
+    aziv, elev, _ = ecef2aer(
+        xB[mask][valid], yB[mask][valid], zB[mask][valid], *rec_geodetic, deg=True
+    )
+
+    idx_out = np.flatnonzero(mask)[valid]
+    lat_ipp[idx_out] = latv
+    lon_ipp[idx_out] = lonv
+    azi[idx_out] = aziv
+    ele[idx_out] = elev
+
+    return lat_ipp, lon_ipp, azi, ele
