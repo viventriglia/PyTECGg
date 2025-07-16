@@ -11,6 +11,7 @@ polars = "^1.20.0"
 numpy = "^2.0.0"
 scipy = "^1.15"
 pymap3d = "^3.2"
+tzdata = "^2025.2"
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.8.7"
