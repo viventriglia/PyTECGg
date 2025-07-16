@@ -1,17 +1,22 @@
 from typing import Any, Literal
-import numpy as np
 import math
+import warnings
 import datetime
+
+import numpy as np
+
 
 from pytecal.satellites.kepler import kepler
 from pytecal.satellites import GNSS_CONSTANTS, TOL_KEPLER
 
 
-def _validate_ephemeris(data: dict, required_keys: dict) -> None:
-    """Validate the ephemeris data against required keys"""
+def _is_ephemeris_valid(data: dict, required_keys: dict) -> bool:
+    """Check ephemeris validaty against required keys"""
     missing = [k for k in required_keys if k not in data or data[k] is None]
     if missing:
-        raise ValueError(f"Missing parameters: {missing}")
+        warnings.warn(f"Missing ephemeris parameters: {missing}", RuntimeWarning)
+        return False
+    return True
 
 
 def _compute_time_elapsed(obs_time: datetime.datetime, toe: float) -> float:
