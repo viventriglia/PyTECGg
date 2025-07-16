@@ -103,6 +103,6 @@ def prepare_ephemeris(
             },
         }
 
-        ephem_dict[f"{params.prefix}{sat}"] = ephem
+        ephem_dict[f"{params.prefix}{int(sat):02d}"] = ephem
 
     return ephem_dict
