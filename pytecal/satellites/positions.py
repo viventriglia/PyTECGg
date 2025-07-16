@@ -73,6 +73,7 @@ def satellite_coordinates(
     ephem_dict: dict[str, dict[str, Any]],
     sv_id: str,
     gnss_system: Literal["GPS", "Galileo", "QZSS", "BeiDou"],
+    obs_time: datetime.datetime | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute GNSS satellite position in ECEF coordinates using broadcast ephemeris.
@@ -81,6 +82,7 @@ def satellite_coordinates(
     - ephem_dict: Dictionary containing ephemeris data
     - sv_id: Satellite identifier (e.g., 'E23')
     - gnss_system: GNSS constellation ('GPS', 'Galileo', 'QZSS' or 'BeiDou')
+    - obs_time: Optional observation time (datetime). If None, uses ephemeris timestamp
 
     Returns:
     - pos: [3] array of ECEF coordinates [X, Y, Z] (meters)
@@ -118,13 +120,16 @@ def satellite_coordinates(
         raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
     data = ephem_dict[sv_id]
-    _validate_ephemeris(data, REQUIRED_KEYS)
+    if not _is_ephemeris_valid(data, REQUIRED_KEYS):
+        return np.array([]), np.array([])
+
+    computation_time = obs_time if obs_time is not None else data["datetime"]
 
     try:
         # Core computations
         A = data["sqrta"] ** 2
         n0 = math.sqrt(gm / (A**3))
-        tk = _compute_time_elapsed(data["datetime"], data["toe"])
+        tk = _compute_time_elapsed(computation_time, data["toe"])
 
         # Orbital parameters
         n = n0 + data["deltaN"]
