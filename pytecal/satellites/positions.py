@@ -23,9 +23,16 @@ def _compute_time_elapsed(obs_time: datetime.datetime, toe: float) -> float:
     """Compute the time elapsed since the ephemeris reference epoch (ToE)"""
     if not isinstance(obs_time, datetime.datetime):
         raise TypeError("Invalid datetime format in ephemeris data")
-    tk = (
-        obs_time - datetime.datetime.fromtimestamp(toe, datetime.timezone.utc)
-    ).total_seconds()
+
+    toe_dt = datetime.datetime.fromtimestamp(toe, datetime.timezone.utc)
+
+    # Assicura che entrambi siano aware o naive
+    if obs_time.tzinfo is not None and toe_dt.tzinfo is None:
+        toe_dt = toe_dt.replace(tzinfo=datetime.timezone.utc)
+    elif obs_time.tzinfo is None and toe_dt.tzinfo is not None:
+        obs_time = obs_time.replace(tzinfo=datetime.timezone.utc)
+
+    tk = (obs_time - toe_dt).total_seconds()
     # If time difference is negative (before toe), add 1 week (604800 seconds)
     return tk + 604800 if tk < 0 else tk
 
