@@ -80,15 +80,20 @@ def calculate_ipp(
     # Geodetic coordinates of IPP
     latv, lonv, _ = ecef2geodetic(x_ipp, y_ipp, z_ipp)
 
-    # Azimuth and elevation angles
-    aziv, elev, _ = ecef2aer(
-        xB[mask][valid], yB[mask][valid], zB[mask][valid], *rec_geodetic, deg=True
-    )
-
+    # Azimuth and elevation angles for valid IPP points
     idx_out = np.flatnonzero(mask)[valid]
     lat_ipp[idx_out] = latv
     lon_ipp[idx_out] = lonv
-    azi[idx_out] = aziv
-    ele[idx_out] = elev
+
+    if rec_geodetic is None and rec_ecef is not None:
+        # Compute receiver geodetic coordinates, if not provided, but ECEF is available
+        rec_geodetic = ecef2geodetic(*rec_ecef)
+
+    if rec_geodetic is not None and len(idx_out) > 0:
+        aziv, elev, _ = ecef2aer(
+            xB[mask][valid], yB[mask][valid], zB[mask][valid], *rec_geodetic, deg=True
+        )
+        azi[idx_out] = aziv
+        ele[idx_out] = elev
 
     return lat_ipp, lon_ipp, azi, ele
