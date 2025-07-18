@@ -1,7 +1,7 @@
 # PyTECGg
 
 <!-- Add PyPi version when published -->
-![Python version](https://img.shields.io/badge/python-3.13-blue.svg)
+![Python version](https://img.shields.io/badge/python-3.11--3.13-blue.svg)
 ![License](https://img.shields.io/github/license/viventriglia/pyTEC)
 ![Tests](https://github.com/viventriglia/pyTEC/actions/workflows/pytest.yml/badge.svg)
 
