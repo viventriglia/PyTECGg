@@ -1,4 +1,4 @@
-# PyTECal
+# PyTECGg
 
 <!-- Add PyPi version when published -->
 ![Python version](https://img.shields.io/badge/python-3.13-blue.svg)
@@ -17,7 +17,7 @@ Total Electron Content (**TEC**) reconstruction with **GNSS** data – a Python 
 
 ## What is it?
 
-PyTECal is a fast, lightweight Python package that helps **reconstruct and calibrate** the [Total Electron Content](https://en.wikipedia.org/wiki/Total_electron_content) (TEC) from **GNSS data**.
+PyTECGg is a fast, lightweight Python package that helps **reconstruct and calibrate** the [Total Electron Content](https://en.wikipedia.org/wiki/Total_electron_content) (TEC) from **GNSS data**.
 
 Why calibration matters? Because without it, you don’t actually know the true value of TEC — only how it changes. Uncalibrated TEC is affected by unknown biases from satellites and receivers, as well as other sources of error.
 
@@ -38,7 +38,7 @@ This package:
 ### Read RINEX files — fast ⚡
 
 ```python
-from pytecalrs import read_rinex_nav, read_rinex_obs
+from pytecggrs import read_rinex_nav, read_rinex_obs
 
 # Read a RINEX navigation file
 nav_dict = read_rinex_nav("./path/to/your/file.rnx")
@@ -50,7 +50,7 @@ obs_data, rec_pos, rinex_version = read_rinex_obs("./path/to/your/file.rnx")
 ### Prepare Satellite Ephemerides 🛰️
 
 ```python
-from pytecal.satellites.ephemeris import prepare_ephemeris
+from pytecgg.satellites.ephemeris import prepare_ephemeris
 
 ephem_dict = prepare_ephemeris(nav_dict, constellation='Galileo')
 ```
@@ -60,7 +60,7 @@ Supported constellations are: ```'Galileo', 'GPS', 'GLONASS', 'BeiDou'```
 ### Compute Satellite Coordinates 🧭
 
 ```python
-from pytecal.satellites.positions import satellite_coordinates
+from pytecgg.satellites.positions import satellite_coordinates
 
 # Compute the position of a Galileo satellite (space vehicle #25)
 satellite_coordinates(ephem_dict=ephem_dict, sv_id='E25', gnss_system='Galileo')

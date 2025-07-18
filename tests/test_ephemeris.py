@@ -2,8 +2,8 @@ from datetime import datetime, timedelta, timezone
 
 import polars as pl
 
-from pytecalrs import read_rinex_nav
-from pytecal.satellites.ephemeris import _parse_time, prepare_ephemeris
+from pytecggrs import read_rinex_nav
+from pytecgg.satellites.ephemeris import _parse_time, prepare_ephemeris
 
 
 def test_parse_time():

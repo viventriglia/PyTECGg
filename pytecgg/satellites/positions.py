@@ -6,8 +6,8 @@ import datetime
 import numpy as np
 
 
-from pytecal.satellites.kepler import kepler
-from pytecal.satellites import GNSS_CONSTANTS, TOL_KEPLER
+from pytecgg.satellites.kepler import kepler
+from pytecgg.satellites import GNSS_CONSTANTS, TOL_KEPLER
 
 
 def _is_ephemeris_valid(data: dict, required_keys: dict) -> bool:

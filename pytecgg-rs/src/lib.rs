@@ -184,7 +184,7 @@ fn read_rinex_nav(path: &str) -> PyResult<BTreeMap<String, PyDataFrame>> {
 }
 
 #[pymodule]
-fn pytecalrs(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn pytecggrs(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_rinex_obs, m)?)?;
     m.add_function(wrap_pyfunction!(read_rinex_nav, m)?)?;
     Ok(())

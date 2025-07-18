@@ -1,5 +1,5 @@
 import numpy as np
-from pytecal.phase.ipp import calculate_ipp
+from pytecgg.phase.ipp import calculate_ipp
 
 
 def test_visible_satellite():

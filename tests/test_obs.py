@@ -1,4 +1,4 @@
-from pytecalrs import read_rinex_obs
+from pytecggrs import read_rinex_obs
 from polars import DataFrame
 import pytest
 
@@ -40,6 +40,7 @@ def test_read_rinex_obs_valid_v3_hatanaka(obs_v3_hatanaka_compressed_file):
     assert version.startswith("3")
 
 
+# TODO
 # def test_read_rinex_obs_valid_v3_gzipped(obs_v3_gzip_file):
 #     df, (x, y, z) = read_rinex_obs(obs_v3_gzip_file)
 #     assert df.shape[0] > 0

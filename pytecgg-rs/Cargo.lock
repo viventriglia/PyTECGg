@@ -2181,7 +2181,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pytecalrs"
+name = "pytecggrs"
 version = "0.1.0"
 dependencies = [
  "polars",

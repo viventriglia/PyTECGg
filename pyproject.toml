@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pytecal"
+name = "pytecgg"
 version = "0.1.0"
 description = "Total Electron Content (TEC) reconstruction with GNSS data – a Python package with a Rust core"
 authors = ["Vincenzo <vincenzo.ventriglia@outlook.com>"]
@@ -23,10 +23,10 @@ jupyter = "^1.1.1"
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
-addopts = "-v --cov=pytecal --cov-report=term-missing"
+addopts = "-v --cov=pytecgg --cov-report=term-missing"
 
 [tool.coverage.run]
-omit = ["pytecal/rinex.py"]
+omit = ["pytecgg/rinex.py"]
 
 [build-system]
 requires = ["poetry-core"]

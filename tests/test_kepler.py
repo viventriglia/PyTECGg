@@ -1,5 +1,5 @@
 from math import isclose, pi
-from pytecal.satellites.kepler import kepler
+from pytecgg.satellites.kepler import kepler
 from numpy import sin
 
 

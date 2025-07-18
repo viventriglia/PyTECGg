@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta, timezone
 
-from pytecal.satellites.ephemeris import _parse_time, _greg2gps
+from pytecgg.satellites.ephemeris import _parse_time, _greg2gps
 
 
 def test_parse_time_valid_gpst():

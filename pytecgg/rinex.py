@@ -1,4 +1,4 @@
-from pytecal import read_rinex_obs, read_rinex_nav
+from pytecgg import read_rinex_obs, read_rinex_nav
 import time
 
 
