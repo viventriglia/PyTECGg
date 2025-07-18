@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Total Electron Content (TEC) reconstruction with GNSS data – a Python package with a Rust core"
 authors = ["Vincenzo <vincenzo.ventriglia@outlook.com>"]
 readme = "README.md"
+license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
