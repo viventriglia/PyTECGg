@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://github.com/viventriglia/PyTECGg/actions/workflows/pytest.yml/badge.svg" alt="Tests">
   <img src="https://github.com/viventriglia/pytecgg/actions/workflows/build_publish.yml/badge.svg" alt="CI">
-  <a href="https://gemini.google.com/share/TUA_GEM">
+  <a href="https://gemini.google.com/gem/1qc1bu6XL6UVUtrd1MLuCQVrnLI8_nU9_?usp=sharing">
     <img src="https://img.shields.io/badge/Gemini-PyTECGg-1a73e8?logo=googlegemini&logoColor=white" alt="Gemini Gem">
   </a>
 </p>
