@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/contributing/">
+        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/quickstart/1-preprocessing-geometry/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../0-data-ingestion-setup/">
       
       
-        <link rel="next" href="../quickstart/0-data-ingestion-setup/">
+        <link rel="next" href="../2-tec-calibration/">
       
       
         
       
       
-      <link rel="icon" href="../images/favicon.ico">
+      <link rel="icon" href="../../images/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Contributing - PyTECGg</title>
+        <title>Preprocessing & Geometry - PyTECGg</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributing-to-pytecgg" class="md-skip">
+        <a href="#preprocessing-geometry" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Contributing
+              Preprocessing & Geometry
             
           </span>
         </div>
@@ -226,7 +226,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -245,7 +245,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../installation/" class="md-tabs__link">
+      <a href="../../installation/" class="md-tabs__link">
         
   
   
@@ -262,11 +262,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -283,11 +281,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../quickstart/0-data-ingestion-setup/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../0-data-ingestion-setup/" class="md-tabs__link">
           
   
   
@@ -307,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../reference/parsing/" class="md-tabs__link">
+        <a href="../../reference/parsing/" class="md-tabs__link">
           
   
   
@@ -341,9 +341,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     PyTECGg
@@ -370,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -397,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -421,6 +421,118 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quickstart
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../0-data-ingestion-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Ingestion & Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -440,7 +552,7 @@
   <span class="md-ellipsis">
     
   
-    Contributing
+    Preprocessing & Geometry
   
 
     
@@ -458,7 +570,7 @@
   <span class="md-ellipsis">
     
   
-    Contributing
+    Preprocessing & Geometry
   
 
     
@@ -484,10 +596,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
+  <a href="#ephemeris-preparation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to contribute
+        Ephemeris Preparation 📐
       
     </span>
   </a>
@@ -495,10 +607,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#signal-processing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        Signal Processing 🔎
       
     </span>
   </a>
@@ -506,10 +618,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
+  <a href="#orbital-propagation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code style
+        Orbital Propagation 🌍
       
     </span>
   </a>
@@ -517,10 +629,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
+  <a href="#ionospheric-pierce-point-ipp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing
+        Ionospheric Pierce Point (IPP) 📌
       
     </span>
   </a>
@@ -528,43 +640,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
+  <a href="#wrapping-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
+        Wrapping up 🏁
       
     </span>
   </a>
@@ -578,85 +657,6 @@
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quickstart
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Quickstart
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../quickstart/0-data-ingestion-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Ingestion & Setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -666,35 +666,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/1-preprocessing-geometry/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Preprocessing & Geometry
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../quickstart/2-tec-calibration/" class="md-nav__link">
+      <a href="../2-tec-calibration/" class="md-nav__link">
         
   
   
@@ -722,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/3-batch-processing/" class="md-nav__link">
+      <a href="../3-batch-processing/" class="md-nav__link">
         
   
   
@@ -809,7 +781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/parsing/" class="md-nav__link">
+      <a href="../../reference/parsing/" class="md-nav__link">
         
   
   
@@ -837,7 +809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/context/" class="md-nav__link">
+      <a href="../../reference/context/" class="md-nav__link">
         
   
   
@@ -865,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/satellites/" class="md-nav__link">
+      <a href="../../reference/satellites/" class="md-nav__link">
         
   
   
@@ -893,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/tec_calibration/" class="md-nav__link">
+      <a href="../../reference/tec_calibration/" class="md-nav__link">
         
   
   
@@ -921,7 +893,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/utils/" class="md-nav__link">
+      <a href="../../reference/utils/" class="md-nav__link">
         
   
   
@@ -976,10 +948,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
+  <a href="#ephemeris-preparation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to contribute
+        Ephemeris Preparation 📐
       
     </span>
   </a>
@@ -987,10 +959,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#signal-processing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        Signal Processing 🔎
       
     </span>
   </a>
@@ -998,10 +970,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
+  <a href="#orbital-propagation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code style
+        Orbital Propagation 🌍
       
     </span>
   </a>
@@ -1009,10 +981,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
+  <a href="#ionospheric-pierce-point-ipp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing
+        Ionospheric Pierce Point (IPP) 📌
       
     </span>
   </a>
@@ -1020,43 +992,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
+  <a href="#wrapping-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
+        Wrapping up 🏁
       
     </span>
   </a>
@@ -1083,112 +1022,169 @@
   
 
 
-<h1 id="contributing-to-pytecgg">Contributing to PyTECGg<a class="headerlink" href="#contributing-to-pytecgg" title="Permanent link">&para;</a></h1>
-<p>First off, thanks for taking the time to contribute! 🎉<br />
-Open source projects like this one thrive on community input.</p>
-<h2 id="how-to-contribute">How to contribute<a class="headerlink" href="#how-to-contribute" title="Permanent link">&para;</a></h2>
-<p>Whether you want to fix a bug, propose a new feature, improve the documentation, or just ask a question — you're welcome here!</p>
-<p>Here are common ways to get involved:</p>
+<h1 id="preprocessing-geometry">Preprocessing &amp; Geometry 🛰️<a class="headerlink" href="#preprocessing-geometry" title="Permanent link">&para;</a></h1>
+<p>This stage transforms raw observations into high-quality, geometrically-referenced time series, determining exactly where the ionospheric observations took place.</p>
+<h2 id="ephemeris-preparation">Ephemeris Preparation 📐<a class="headerlink" href="#ephemeris-preparation" title="Permanent link">&para;</a></h2>
+<p>The first step is filtering global navigation messages and preparing ephemerides. Beyond preparing data for orbital propagation, this function enriches the <code>GNSSContext</code> with GLONASS <code>frequency_channels</code> (if <code>R</code> is among the requested constellations).</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_ephemeris</span>
+
+<span class="n">ephem_dict</span> <span class="o">=</span> <span class="n">prepare_ephemeris</span><span class="p">(</span><span class="n">nav_dict</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="signal-processing">Signal Processing 🔎<a class="headerlink" href="#signal-processing" title="Permanent link">&para;</a></h2>
+<p>Starting from the basic observables and given a <code>GNSSContext</code>, <code>PyTECGg</code> can compute the following <a href="https://gssc.esa.int/navipedia/index.php/Combination_of_GNSS_Measurements">linear combinations</a>, useful for removing biases or isolating physical effects:</p>
 <ul>
-<li>Report bugs</li>
-<li>Suggest enhancements</li>
-<li>Submit pull requests</li>
-<li>Improve documentation</li>
-<li>Review pull requests</li>
+<li><a href="https://gssc.esa.int/navipedia/index.php/Detector_based_in_carrier_phase_data:_The_geometry-free_combination">Geometry-Free</a> Linear Combination (<abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr>), sensitive to ionospheric effects.</li>
+<li><a href="https://gssc.esa.int/navipedia/index.php/Ionosphere-free_Combination_for_Dual_Frequency_Receivers">Ionosphere-Free</a> Linear Combination (IFLC), used to eliminate the ionospheric delay.</li>
+<li><a href="https://gssc.esa.int/navipedia/index.php/Detector_based_in_code_and_carrier_phase_data:_The_Melbourne-W%C3%BCbbena_combination">Melbourne-Wübbena</a> (MW) combination, useful for cycle-slip detection and ambiguity resolution.</li>
 </ul>
-<h2 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Clone the repository and make sure you have the latest version
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>develop
-git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Create your feature branch from <code>develop</code>
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature_amazing_feature<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Make your changes and format your code with <code>black .</code> (please refer to the <a href="#code-style">Code style</a> section)</li>
-<li>Run tests with <code>pytest</code> to ensure everything works</li>
-<li>Commit and push to your branch</li>
-<li>Open a Pull Request (PR) to the <code>develop</code> branch</li>
-</ol>
-<p>Please ensure that <strong>each commit is atomic</strong> (one feature/fix per commit) and includes a <strong>clear message</strong>. For bigger changes, consider writing a descriptive body.</p>
-<h2 id="code-style">Code style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
-<p>This project uses <a href="https://github.com/psf/black"><strong>Black</strong></a> as the code formatter: please run <code>black .</code> before pushing your code.</p>
-<p>Some general conventions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.linear_combinations</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_linear_combinations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.tec_calibration</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_arcs</span>
+
+<span class="c1"># Compute selected linear combinations</span>
+<span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span>
+    <span class="n">df_obs</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+    <span class="n">combinations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gflc_phase&quot;</span><span class="p">,</span> <span class="s2">&quot;gflc_code&quot;</span><span class="p">,</span> <span class="s2">&quot;mw&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Identify continuous arcs, detect cycle slips</span>
+<span class="c1"># and loss-of-lock events</span>
+<span class="n">df_arcs</span> <span class="o">=</span> <span class="n">extract_arcs</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">df_lc</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+    <span class="n">threshold_abs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">threshold_std</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">threshold_jump</span><span class="o">=</span><span class="mi">5</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Processing parameters and options:</p>
 <ul>
-<li>
-<p>Write readable, <strong>modular</strong> code.</p>
-</li>
-<li>
-<p>Add <strong>comments</strong> (if something isn’t immediately obvious) <strong>explaining the why</strong>, not the how.</p>
-</li>
-<li>
-<p>Use meaningful variable names.</p>
-</li>
-<li>
-<p>Prefer <strong>clarity</strong> over cleverness.</p>
-</li>
+<li><code>combinations</code>: defines which signals to compute. Options include <abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr> (<code>gflc_phase</code>, <code>gflc_code</code>), IFLC (<code>iflc_phase</code>, <code>iflc_code</code>), and MW (<code>mw</code>).</li>
+<li><code>extract_arcs</code>: outputs a Polars <code>DataFrame</code> containing unique arc identifiers (<code>id_arc_valid</code>) and arc-levelled <abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr> values, essential for accurate bias estimation.</li>
+<li><code>threshold_abs</code> &amp; <code>threshold_std</code>: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.</li>
+<li><code>threshold_jump</code>: tolerance for detecting and correcting residual jumps within an arc.</li>
+<li><code>max_gap</code>: an be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared</li>
 </ul>
-<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<p>If your changes affect functionality, please include appropriate tests or describe how the changes were manually tested. This project uses <a href="https://github.com/pytest-dev/pytest">pytest</a>.</p>
-<p><strong>Before submitting a PR</strong>, please ensure all tests pass by running <code>pytest</code></p>
-<h2 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
-<p>For contributors submitting PRs, please ensure:</p>
-<ul>
-<li>
-<p>You've updated the <code>README.md</code> file — if your changes affect usage or documentation</p>
-</li>
-<li>
-<p>All tests pass</p>
-</li>
-</ul>
-<p>Once your PR is merged to <code>develop</code>, maintainers will:</p>
-<ul>
-<li>
-<p>Handle version tagging and management</p>
-</li>
-<li>
-<p>Automatically build and publish releases to PyPI</p>
-</li>
-<li>
-<p>Ensure cross-platform compatibility (Windows, Linux, macOS)</p>
-</li>
-</ul>
-<h2 id="bug-reports">Bug reports<a class="headerlink" href="#bug-reports" title="Permanent link">&para;</a></h2>
-<p>If you find a bug, open an issue with the <code>bug</code> tag and:</p>
-<ul>
-<li>
-<p>A clear title</p>
-</li>
-<li>
-<p>A short description of the bug</p>
-</li>
-<li>
-<p>Steps to reproduce (if possible)</p>
-</li>
-<li>
-<p>Expected vs. actual behavior</p>
-</li>
-<li>
-<p>Environment (Python version, OS, etc.)</p>
-</li>
-</ul>
-<h2 id="feature-suggestions">Feature suggestions<a class="headerlink" href="#feature-suggestions" title="Permanent link">&para;</a></h2>
-<p>Want to propose something new? Great! Open an issue with the enhancement <code>tag</code> and describe:</p>
-<ul>
-<li>
-<p>What the feature does</p>
-</li>
-<li>
-<p>Why it would be useful</p>
-</li>
-<li>
-<p>Any technical considerations or ideas for implementation</p>
-</li>
-</ul>
-<h2 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h2>
-<p>You can reach out by opening an issue for general discussion or suggestions.</p>
-<p>Let’s keep things respectful, constructive, and collaborative.</p>
-<p>Thanks again! 💙</p>
+<h2 id="orbital-propagation">Orbital Propagation 🌍<a class="headerlink" href="#orbital-propagation" title="Permanent link">&para;</a></h2>
+<p>To locate the ionospheric samples, we must first compute the satellite positions in the <abbr title="Earth-Centered, Earth-Fixed: a Cartesian coordinate system where the origin is at the Earth's center of mass.">ECEF</abbr> frame.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">satellite_coordinates</span>
+
+<span class="c1"># Compute satellitess ECEF coordinates</span>
+<span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span>
+    <span class="n">sv_ids</span><span class="o">=</span><span class="n">df_arcs</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">],</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="n">df_arcs</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span>
+    <span class="n">ephem_dict</span><span class="o">=</span><span class="n">ephem_dict</span>
+<span class="p">)</span>
+
+<span class="c1"># Join coordinates with the observation data</span>
+<span class="n">df_geom</span> <span class="o">=</span> <span class="n">df_arcs</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_coords</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">,</span> <span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>satellite_coordinates</code> provides the <code>X</code>, <code>Y</code>, <code>Z</code> positions of each satellite for every observed epoch.</p>
+<h2 id="ionospheric-pierce-point-ipp">Ionospheric Pierce Point (<abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr>) 📌<a class="headerlink" href="#ionospheric-pierce-point-ipp" title="Permanent link">&para;</a></h2>
+<p>The <abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr> is the theoretical intersection between the satellite–receiver line of sight and a thin-shell ionospheric model at the altitude defined in the <code>GNSSContext</code> (default: 350 km).</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_ipp</span>
+
+<span class="n">df_final</span> <span class="o">=</span> <span class="n">calculate_ipp</span><span class="p">(</span><span class="n">df_geom</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span> <span class="n">min_elevation</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div>
+<p>This function appends geographic coordinates (<code>lat_ipp</code>, <code>lon_ipp</code>) and the mapping function values to the Polars <code>DataFrame</code>. The <code>min_elevation</code> argument sets a cut-off angle (in degrees) to filter satellites elevation.</p>
+<div class="admonition info">
+<p class="admonition-title">Elevation Masking</p>
+<p>Filtering out elevations below 20° is highly recommended to feed cleaner data to the calibration model, as low-elevation signals are more susceptible to multipath and noise.</p>
+</div>
+<h2 id="wrapping-up">Wrapping up 🏁<a class="headerlink" href="#wrapping-up" title="Permanent link">&para;</a></h2>
+<p>After completing all the preprocessing steps, your <code>DataFrame</code> is ready for the calibration engine: it now contains a rich set of features, that you can inspect using Polars selection methods.</p>
+<p>As an example, we may want to inspect arc metadata, like the unique identifier for each continuous observation sequence (<code>id_arc_valid</code>); the corrected and levelled <abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr> (<code>gflc_levelled</code>, in TECu); and some geometric features, like the geographic <abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr> location (<code>lat_ipp</code>, <code>lon_ipp</code>) and the viewing geometry from the station (<code>azi</code>, <code>ele</code>).</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Code</label><label for="__tabbed_1_2">Example Output</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">df_final</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;id_arc_valid&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_not_null</span><span class="p">()</span>
+<span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;id_arc_valid&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gflc_levelled&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lat_ipp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lon_ipp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;azi&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ele&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">epoch</th>
+<th style="text-align: left;">sv</th>
+<th style="text-align: left;">id_arc_valid</th>
+<th style="text-align: left;">gflc_levelled</th>
+<th style="text-align: left;">lat_ipp</th>
+<th style="text-align: left;">lon_ipp</th>
+<th style="text-align: left;">azi</th>
+<th style="text-align: left;">ele</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">00:00:00</td>
+<td style="text-align: left;">E02</td>
+<td style="text-align: left;">"bneu_e02_001"</td>
+<td style="text-align: left;">42.39</td>
+<td style="text-align: left;">20.40</td>
+<td style="text-align: left;">96.31</td>
+<td style="text-align: left;">257.73</td>
+<td style="text-align: left;">26.55</td>
+</tr>
+<tr>
+<td style="text-align: left;">00:00:00</td>
+<td style="text-align: left;">E03</td>
+<td style="text-align: left;">"bneu_e03_001"</td>
+<td style="text-align: left;">42.11</td>
+<td style="text-align: left;">23.51</td>
+<td style="text-align: left;">99.84</td>
+<td style="text-align: left;">314.36</td>
+<td style="text-align: left;">47.16</td>
+</tr>
+<tr>
+<td style="text-align: left;">00:00:00</td>
+<td style="text-align: left;">E05</td>
+<td style="text-align: left;">"bneu_e05_001"</td>
+<td style="text-align: left;">44.97</td>
+<td style="text-align: left;">20.75</td>
+<td style="text-align: left;">101.93</td>
+<td style="text-align: left;">179.50</td>
+<td style="text-align: left;">73.10</td>
+</tr>
+<tr>
+<td style="text-align: left;">00:00:00</td>
+<td style="text-align: left;">E16</td>
+<td style="text-align: left;">"bneu_e16_001"</td>
+<td style="text-align: left;">11.03</td>
+<td style="text-align: left;">23.88</td>
+<td style="text-align: left;">102.24</td>
+<td style="text-align: left;">27.57</td>
+<td style="text-align: left;">52.26</td>
+</tr>
+<tr>
+<td style="text-align: left;">00:00:00</td>
+<td style="text-align: left;">E25</td>
+<td style="text-align: left;">"bneu_e25_001"</td>
+<td style="text-align: left;">34.64</td>
+<td style="text-align: left;">22.97</td>
+<td style="text-align: left;">100.76</td>
+<td style="text-align: left;">321.15</td>
+<td style="text-align: left;">59.68</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 
 
 
@@ -1220,7 +1216,7 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../0-data-ingestion-setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Data Ingestion &amp; Setup">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1230,20 +1226,20 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Data Ingestion & Setup
               </div>
             </div>
           </a>
         
         
           
-          <a href="../quickstart/0-data-ingestion-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Ingestion &amp; Setup">
+          <a href="../2-tec-calibration/" class="md-footer__link md-footer__link--next" aria-label="Next: TEC Calibration">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Data Ingestion & Setup
+                TEC Calibration
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1311,10 +1307,10 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

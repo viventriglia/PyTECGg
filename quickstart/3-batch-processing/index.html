@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/contributing/">
+        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/quickstart/3-batch-processing/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../2-tec-calibration/">
       
       
-        <link rel="next" href="../quickstart/0-data-ingestion-setup/">
+        <link rel="next" href="../../reference/parsing/">
       
       
         
       
       
-      <link rel="icon" href="../images/favicon.ico">
+      <link rel="icon" href="../../images/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Contributing - PyTECGg</title>
+        <title>Batch Processing - PyTECGg</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributing-to-pytecgg" class="md-skip">
+        <a href="#batch-processing" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Contributing
+              Batch Processing
             
           </span>
         </div>
@@ -226,7 +226,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -245,7 +245,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../installation/" class="md-tabs__link">
+      <a href="../../installation/" class="md-tabs__link">
         
   
   
@@ -262,11 +262,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -283,11 +281,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../quickstart/0-data-ingestion-setup/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../0-data-ingestion-setup/" class="md-tabs__link">
           
   
   
@@ -307,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../reference/parsing/" class="md-tabs__link">
+        <a href="../../reference/parsing/" class="md-tabs__link">
           
   
   
@@ -341,9 +341,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     PyTECGg
@@ -370,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -397,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -421,37 +421,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Contributing
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -467,114 +440,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to contribute
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting started
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Code style
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -583,26 +448,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -620,7 +490,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -638,7 +508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/0-data-ingestion-setup/" class="md-nav__link">
+      <a href="../0-data-ingestion-setup/" class="md-nav__link">
         
   
   
@@ -666,7 +536,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/1-preprocessing-geometry/" class="md-nav__link">
+      <a href="../1-preprocessing-geometry/" class="md-nav__link">
         
   
   
@@ -694,7 +564,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/2-tec-calibration/" class="md-nav__link">
+      <a href="../2-tec-calibration/" class="md-nav__link">
         
   
   
@@ -719,10 +589,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../quickstart/3-batch-processing/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batch Processing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -738,6 +635,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#data-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Acquisition 📥
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-day-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-day Analysis 🗓️
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrapping-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrapping up 🏁
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -809,7 +759,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/parsing/" class="md-nav__link">
+      <a href="../../reference/parsing/" class="md-nav__link">
         
   
   
@@ -837,7 +787,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/context/" class="md-nav__link">
+      <a href="../../reference/context/" class="md-nav__link">
         
   
   
@@ -865,7 +815,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/satellites/" class="md-nav__link">
+      <a href="../../reference/satellites/" class="md-nav__link">
         
   
   
@@ -893,7 +843,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/tec_calibration/" class="md-nav__link">
+      <a href="../../reference/tec_calibration/" class="md-nav__link">
         
   
   
@@ -921,7 +871,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/utils/" class="md-nav__link">
+      <a href="../../reference/utils/" class="md-nav__link">
         
   
   
@@ -976,10 +926,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
+  <a href="#data-acquisition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to contribute
+        Data Acquisition 📥
       
     </span>
   </a>
@@ -987,10 +937,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#multi-day-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        Multi-day Analysis 🗓️
       
     </span>
   </a>
@@ -998,65 +948,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
+  <a href="#wrapping-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code style
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
+        Wrapping up 🏁
       
     </span>
   </a>
@@ -1083,112 +978,75 @@
   
 
 
-<h1 id="contributing-to-pytecgg">Contributing to PyTECGg<a class="headerlink" href="#contributing-to-pytecgg" title="Permanent link">&para;</a></h1>
-<p>First off, thanks for taking the time to contribute! 🎉<br />
-Open source projects like this one thrive on community input.</p>
-<h2 id="how-to-contribute">How to contribute<a class="headerlink" href="#how-to-contribute" title="Permanent link">&para;</a></h2>
-<p>Whether you want to fix a bug, propose a new feature, improve the documentation, or just ask a question — you're welcome here!</p>
-<p>Here are common ways to get involved:</p>
-<ul>
-<li>Report bugs</li>
-<li>Suggest enhancements</li>
-<li>Submit pull requests</li>
-<li>Improve documentation</li>
-<li>Review pull requests</li>
-</ul>
-<h2 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Clone the repository and make sure you have the latest version
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>develop
-git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Create your feature branch from <code>develop</code>
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature_amazing_feature<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Make your changes and format your code with <code>black .</code> (please refer to the <a href="#code-style">Code style</a> section)</li>
-<li>Run tests with <code>pytest</code> to ensure everything works</li>
-<li>Commit and push to your branch</li>
-<li>Open a Pull Request (PR) to the <code>develop</code> branch</li>
-</ol>
-<p>Please ensure that <strong>each commit is atomic</strong> (one feature/fix per commit) and includes a <strong>clear message</strong>. For bigger changes, consider writing a descriptive body.</p>
-<h2 id="code-style">Code style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
-<p>This project uses <a href="https://github.com/psf/black"><strong>Black</strong></a> as the code formatter: please run <code>black .</code> before pushing your code.</p>
-<p>Some general conventions:</p>
-<ul>
-<li>
-<p>Write readable, <strong>modular</strong> code.</p>
-</li>
-<li>
-<p>Add <strong>comments</strong> (if something isn’t immediately obvious) <strong>explaining the why</strong>, not the how.</p>
-</li>
-<li>
-<p>Use meaningful variable names.</p>
-</li>
-<li>
-<p>Prefer <strong>clarity</strong> over cleverness.</p>
-</li>
-</ul>
-<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<p>If your changes affect functionality, please include appropriate tests or describe how the changes were manually tested. This project uses <a href="https://github.com/pytest-dev/pytest">pytest</a>.</p>
-<p><strong>Before submitting a PR</strong>, please ensure all tests pass by running <code>pytest</code></p>
-<h2 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
-<p>For contributors submitting PRs, please ensure:</p>
-<ul>
-<li>
-<p>You've updated the <code>README.md</code> file — if your changes affect usage or documentation</p>
-</li>
-<li>
-<p>All tests pass</p>
-</li>
-</ul>
-<p>Once your PR is merged to <code>develop</code>, maintainers will:</p>
-<ul>
-<li>
-<p>Handle version tagging and management</p>
-</li>
-<li>
-<p>Automatically build and publish releases to PyPI</p>
-</li>
-<li>
-<p>Ensure cross-platform compatibility (Windows, Linux, macOS)</p>
-</li>
-</ul>
-<h2 id="bug-reports">Bug reports<a class="headerlink" href="#bug-reports" title="Permanent link">&para;</a></h2>
-<p>If you find a bug, open an issue with the <code>bug</code> tag and:</p>
-<ul>
-<li>
-<p>A clear title</p>
-</li>
-<li>
-<p>A short description of the bug</p>
-</li>
-<li>
-<p>Steps to reproduce (if possible)</p>
-</li>
-<li>
-<p>Expected vs. actual behavior</p>
-</li>
-<li>
-<p>Environment (Python version, OS, etc.)</p>
-</li>
-</ul>
-<h2 id="feature-suggestions">Feature suggestions<a class="headerlink" href="#feature-suggestions" title="Permanent link">&para;</a></h2>
-<p>Want to propose something new? Great! Open an issue with the enhancement <code>tag</code> and describe:</p>
-<ul>
-<li>
-<p>What the feature does</p>
-</li>
-<li>
-<p>Why it would be useful</p>
-</li>
-<li>
-<p>Any technical considerations or ideas for implementation</p>
-</li>
-</ul>
-<h2 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h2>
-<p>You can reach out by opening an issue for general discussion or suggestions.</p>
-<p>Let’s keep things respectful, constructive, and collaborative.</p>
-<p>Thanks again! 💙</p>
+<h1 id="batch-processing">Batch Processing 🗃️<a class="headerlink" href="#batch-processing" title="Permanent link">&para;</a></h1>
+<p>When moving from single-file analysis to processing multi-day time series, <code>PyTECGg</code> leverages the efficiency of Polars to handle data with minimal overhead.</p>
+<h2 id="data-acquisition">Data Acquisition 📥<a class="headerlink" href="#data-acquisition" title="Permanent link">&para;</a></h2>
+<p>In a typical scenario, you might start with several observation files placed under <code>data/obs</code>. <code>PyTECGg</code> allows you to automatically fetch broadcast navigation files from global repositories.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_nav_bkg</span>
+
+<span class="c1"># Time window</span>
+<span class="n">YEAR</span> <span class="o">=</span> <span class="mi">2026</span>
+<span class="n">DOYS</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="mi">60</span><span class="p">))</span>
+
+<span class="c1"># Define data paths</span>
+<span class="n">obs_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/obs&quot;</span><span class="p">)</span>
+<span class="n">nav_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/nav&quot;</span><span class="p">)</span>
+
+<span class="n">download_nav_bkg</span><span class="p">(</span>
+    <span class="n">year</span><span class="o">=</span><span class="n">YEAR</span><span class="p">,</span>
+    <span class="n">doys</span><span class="o">=</span><span class="n">DOYS</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">nav_path</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="multi-day-analysis">Multi-day Analysis 🗓️<a class="headerlink" href="#multi-day-analysis" title="Permanent link">&para;</a></h2>
+<p>An easy way to process a long time series for a single station <code>STAT</code> is to concatenate observations before entering the calibration engine. This ensures that <code>extract_arcs</code> can track satellite arcs across day boundaries, preventing artificial bias jumps at midnight.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.parsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_rinex_obs</span><span class="p">,</span> <span class="n">read_rinex_nav</span>
+
+<span class="c1"># Collect and concatenate observations for station &#39;STAT&#39;</span>
+<span class="n">obs_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">obs_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;STAT*.rnx&quot;</span><span class="p">))</span>
+<span class="n">all_obs</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">read_rinex_obs</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">obs_files</span><span class="p">])</span>
+
+<span class="c1"># Consolidate navigation messages into a dictionary</span>
+<span class="n">nav_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nav_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;BRDC*.rnx.gz&quot;</span><span class="p">))</span>
+<span class="n">full_nav</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">f_</span> <span class="ow">in</span> <span class="n">nav_files</span><span class="p">:</span>
+    <span class="n">day_nav</span> <span class="o">=</span> <span class="n">read_rinex_nav</span><span class="p">(</span><span class="n">f_</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">system</span><span class="p">,</span> <span class="n">df_nav</span> <span class="ow">in</span> <span class="n">day_nav</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">full_nav</span><span class="p">[</span><span class="n">system</span><span class="p">]</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">full_nav</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()),</span> <span class="n">df_nav</span><span class="p">]</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p>Once your data is consolidated, the workflow follows the standard pipeline but operates on the entire time series at once.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_ephemeris</span><span class="p">,</span> <span class="n">satellite_coordinates</span><span class="p">,</span> <span class="n">calculate_ipp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.linear_combinations</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_linear_combinations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.tec_calibration</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">extract_arcs</span><span class="p">,</span>
+    <span class="n">calculate_tec</span><span class="p">,</span>
+    <span class="n">calculate_vertical_equivalent</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Enrich context and compute coordinates</span>
+<span class="n">ephem_dict</span> <span class="o">=</span> <span class="n">prepare_ephemeris</span><span class="p">(</span><span class="n">full_nav</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span><span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">],</span> <span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">ephem_dict</span><span class="p">)</span>
+
+<span class="c1"># Extract arcs and compute satellites&#39; geometry</span>
+<span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span><span class="n">all_obs</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="n">df_arcs</span> <span class="o">=</span> <span class="n">extract_arcs</span><span class="p">(</span><span class="n">df_lc</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">min_arc_length</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">df_coords</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">,</span> <span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span>
+<span class="p">)</span>
+<span class="n">df_geom</span> <span class="o">=</span> <span class="n">calculate_ipp</span><span class="p">(</span><span class="n">df_arcs</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">min_elevation</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># Final calibrated products</span>
+<span class="n">df_cal</span> <span class="o">=</span> <span class="n">calculate_tec</span><span class="p">(</span><span class="n">df_geom</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">)</span>
+<span class="n">df_veq</span> <span class="o">=</span> <span class="n">calculate_vertical_equivalent</span><span class="p">(</span><span class="n">df_cal</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="wrapping-up">Wrapping up 🏁<a class="headerlink" href="#wrapping-up" title="Permanent link">&para;</a></h2>
+<p>As shown in the plot below, while individual satellite tracks (blue dots) reflect specific ionospheric conditions at different IPPs, the <strong><abbr title="Vertical Equivalent: the synthetic zenithal TEC estimated directly above the station.">VEq</abbr></strong> (solid black line) provides a continuous, stable estimation of the ionospheric electron content directly above the station <abbr title="The point on the celestial sphere directly above a particular location (elevation 90°).">zenith</abbr>.</p>
+<p><img alt="Multi-day TEC analysis" src="../../images/batch_processing.png" /></p>
+<p>Batch processing effectively smooths out individual satellite noise and spatial gradients, providing a reliable TEC estimation even across day boundaries.</p>
 
 
 
@@ -1220,7 +1078,7 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../2-tec-calibration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: TEC Calibration">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1230,20 +1088,20 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                TEC Calibration
               </div>
             </div>
           </a>
         
         
           
-          <a href="../quickstart/0-data-ingestion-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Ingestion &amp; Setup">
+          <a href="../../reference/parsing/" class="md-footer__link md-footer__link--next" aria-label="Next: Parsing">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Data Ingestion & Setup
+                Parsing
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1311,10 +1169,10 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/contributing/">
+        <link rel="canonical" href="https://viventriglia.github.io/PyTECGg/quickstart/0-data-ingestion-setup/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../../contributing/">
       
       
-        <link rel="next" href="../quickstart/0-data-ingestion-setup/">
+        <link rel="next" href="../1-preprocessing-geometry/">
       
       
         
       
       
-      <link rel="icon" href="../images/favicon.ico">
+      <link rel="icon" href="../../images/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Contributing - PyTECGg</title>
+        <title>Data Ingestion & Setup - PyTECGg</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributing-to-pytecgg" class="md-skip">
+        <a href="#data-ingestion-setup" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-header__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Contributing
+              Data Ingestion & Setup
             
           </span>
         </div>
@@ -226,7 +226,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -245,7 +245,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../installation/" class="md-tabs__link">
+      <a href="../../installation/" class="md-tabs__link">
         
   
   
@@ -262,11 +262,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -283,11 +281,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../quickstart/0-data-ingestion-setup/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -307,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../reference/parsing/" class="md-tabs__link">
+        <a href="../../reference/parsing/" class="md-tabs__link">
           
   
   
@@ -341,9 +341,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
+    <a href="../.." title="PyTECGg" class="md-nav__button md-logo" aria-label="PyTECGg" data-md-component="logo">
       
-  <img src="../images/favicon.ico" alt="logo">
+  <img src="../../images/favicon.ico" alt="logo">
 
     </a>
     PyTECGg
@@ -370,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -397,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -421,6 +421,90 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quickstart
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
     
   
   
@@ -440,7 +524,7 @@
   <span class="md-ellipsis">
     
   
-    Contributing
+    Data Ingestion & Setup
   
 
     
@@ -458,7 +542,7 @@
   <span class="md-ellipsis">
     
   
-    Contributing
+    Data Ingestion & Setup
   
 
     
@@ -484,10 +568,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
+  <a href="#parse-rinex-files-fast" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to contribute
+        Parse RINEX files — fast ⚡
       
     </span>
   </a>
@@ -495,10 +579,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#setting-the-context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        Setting the Context ⚙️
       
     </span>
   </a>
@@ -506,68 +590,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
+  <a href="#rinex-utilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code style
+        RINEX utilities 🔧
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RINEX utilities 🔧">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Diagnostics
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#download-rinex-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing
+        Download RINEX files
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -578,85 +635,6 @@
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quickstart
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Quickstart
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../quickstart/0-data-ingestion-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Ingestion & Setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -666,7 +644,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/1-preprocessing-geometry/" class="md-nav__link">
+      <a href="../1-preprocessing-geometry/" class="md-nav__link">
         
   
   
@@ -694,7 +672,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/2-tec-calibration/" class="md-nav__link">
+      <a href="../2-tec-calibration/" class="md-nav__link">
         
   
   
@@ -722,7 +700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/3-batch-processing/" class="md-nav__link">
+      <a href="../3-batch-processing/" class="md-nav__link">
         
   
   
@@ -809,7 +787,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/parsing/" class="md-nav__link">
+      <a href="../../reference/parsing/" class="md-nav__link">
         
   
   
@@ -837,7 +815,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/context/" class="md-nav__link">
+      <a href="../../reference/context/" class="md-nav__link">
         
   
   
@@ -865,7 +843,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/satellites/" class="md-nav__link">
+      <a href="../../reference/satellites/" class="md-nav__link">
         
   
   
@@ -893,7 +871,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/tec_calibration/" class="md-nav__link">
+      <a href="../../reference/tec_calibration/" class="md-nav__link">
         
   
   
@@ -921,7 +899,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/utils/" class="md-nav__link">
+      <a href="../../reference/utils/" class="md-nav__link">
         
   
   
@@ -976,10 +954,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-contribute" class="md-nav__link">
+  <a href="#parse-rinex-files-fast" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to contribute
+        Parse RINEX files — fast ⚡
       
     </span>
   </a>
@@ -987,10 +965,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#setting-the-context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Getting started
+        Setting the Context ⚙️
       
     </span>
   </a>
@@ -998,68 +976,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
+  <a href="#rinex-utilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code style
+        RINEX utilities 🔧
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RINEX utilities 🔧">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Diagnostics
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#download-rinex-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing
+        Download RINEX files
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#release-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release Process
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bug-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug reports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#feature-suggestions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feature suggestions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#community" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Community
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1083,112 +1034,132 @@
   
 
 
-<h1 id="contributing-to-pytecgg">Contributing to PyTECGg<a class="headerlink" href="#contributing-to-pytecgg" title="Permanent link">&para;</a></h1>
-<p>First off, thanks for taking the time to contribute! 🎉<br />
-Open source projects like this one thrive on community input.</p>
-<h2 id="how-to-contribute">How to contribute<a class="headerlink" href="#how-to-contribute" title="Permanent link">&para;</a></h2>
-<p>Whether you want to fix a bug, propose a new feature, improve the documentation, or just ask a question — you're welcome here!</p>
-<p>Here are common ways to get involved:</p>
+<h1 id="data-ingestion-setup">Data Ingestion &amp; Setup 🏗️<a class="headerlink" href="#data-ingestion-setup" title="Permanent link">&para;</a></h1>
+<p>The first step in any TEC analysis is loading the raw data and preparing the execution environment. <code>PyTECGg</code> uses a high-performance Rust backend to parse RINEX files, delivering data directly into a <a href="https://docs.pola.rs/api/python/stable/reference/dataframe/index.html">Polars <code>DataFrame</code></a> for maximum efficiency.</p>
+<h2 id="parse-rinex-files-fast">Parse RINEX files — fast ⚡<a class="headerlink" href="#parse-rinex-files-fast" title="Permanent link">&para;</a></h2>
+<p>The <code>parsing</code> module provides two main functions: <code>read_rinex_obs</code> for observations and <code>read_rinex_nav</code> for navigation messages.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.parsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_rinex_nav</span><span class="p">,</span> <span class="n">read_rinex_obs</span>
+
+<span class="c1"># Define paths to your local files</span>
+<span class="n">NAV_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./path/to/your/nav_file.rnx&quot;</span><span class="p">)</span>
+<span class="n">OBS_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./path/to/your/obs_file.rnx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load navigation data</span>
+<span class="n">nav_dict</span> <span class="o">=</span> <span class="n">read_rinex_nav</span><span class="p">(</span><span class="n">NAV_PATH</span><span class="p">)</span>
+
+<span class="c1"># Load observations and metadata</span>
+<span class="n">df_obs</span><span class="p">,</span> <span class="n">rec_pos</span><span class="p">,</span> <span class="n">rinex_version</span> <span class="o">=</span> <span class="n">read_rinex_obs</span><span class="p">(</span><span class="n">OBS_PATH</span><span class="p">)</span>
+
+<span class="c1"># Derive a standard 4-character receiver name from the filename</span>
+<span class="n">rec_name</span> <span class="o">=</span> <span class="n">OBS_PATH</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Metadata Extraction</p>
+<p><code>read_rinex_obs</code> returns a <code>tuple</code>: along with the observation <code>DataFrame</code>, it automatically extracts the approximate <abbr title="Earth-Centered, Earth-Fixed: a Cartesian coordinate system where the origin is at the Earth's center of mass.">ECEF</abbr> position of the receiver and the RINEX version directly from the file header.</p>
+</div>
+<h2 id="setting-the-context">Setting the Context ⚙️<a class="headerlink" href="#setting-the-context" title="Permanent link">&para;</a></h2>
+<p>The <code>GNSSContext</code> acts as a centralised configuration and state manager for the entire processing pipeline. It ensures that coordinate validation, constellation normalisation, and metadata management are handled consistently across all modules.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg</span><span class="w"> </span><span class="kn">import</span> <span class="n">GNSSContext</span>
+
+<span class="n">ctx</span> <span class="o">=</span> <span class="n">GNSSContext</span><span class="p">(</span>
+    <span class="n">receiver_pos</span><span class="o">=</span><span class="n">rec_pos</span><span class="p">,</span>
+    <span class="n">receiver_name</span><span class="o">=</span><span class="n">rec_name</span><span class="p">,</span>
+    <span class="n">rinex_version</span><span class="o">=</span><span class="n">rinex_version</span><span class="p">,</span>
+    <span class="n">h_ipp</span><span class="o">=</span><span class="mi">350_000</span><span class="p">,</span>
+    <span class="n">systems</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Context parameters are:</p>
 <ul>
-<li>Report bugs</li>
-<li>Suggest enhancements</li>
-<li>Submit pull requests</li>
-<li>Improve documentation</li>
-<li>Review pull requests</li>
+<li><code>receiver_pos</code>, <code>receiver_name</code>, <code>rinex_version</code>: receiver position in <abbr title="Earth-Centered, Earth-Fixed: a Cartesian coordinate system where the origin is at the Earth's center of mass.">ECEF</abbr> coordinates (in meters), station identifier, and RINEX version string, respectively.</li>
+<li><code>h_ipp</code>: the height (in meters) of the Ionospheric Pierce Point (<abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr>). This defines the altitude of the theoretical "thin shell" used for vertical mapping (typically 350 km).</li>
+<li><code>systems</code>: a list of constellation identifiers to be processed. <code>PyTECGg</code> supports <code>GPS</code> (<code>G</code>), <code>Galileo</code> (<code>E</code>), <code>GLONASS</code> (<code>R</code>), and <code>BeiDou</code> (<code>C</code>). You can provide full names (<em>e.g.</em> <code>Galileo</code>) or symbols (<em>e.g.</em> <code>E</code>).</li>
 </ul>
-<h2 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Clone the repository and make sure you have the latest version
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>develop
-git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Create your feature branch from <code>develop</code>
-    <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature_amazing_feature<span class="w"> </span>develop
-</code></pre></div></li>
-<li>Make your changes and format your code with <code>black .</code> (please refer to the <a href="#code-style">Code style</a> section)</li>
-<li>Run tests with <code>pytest</code> to ensure everything works</li>
-<li>Commit and push to your branch</li>
-<li>Open a Pull Request (PR) to the <code>develop</code> branch</li>
-</ol>
-<p>Please ensure that <strong>each commit is atomic</strong> (one feature/fix per commit) and includes a <strong>clear message</strong>. For bigger changes, consider writing a descriptive body.</p>
-<h2 id="code-style">Code style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
-<p>This project uses <a href="https://github.com/psf/black"><strong>Black</strong></a> as the code formatter: please run <code>black .</code> before pushing your code.</p>
-<p>Some general conventions:</p>
-<ul>
-<li>
-<p>Write readable, <strong>modular</strong> code.</p>
-</li>
-<li>
-<p>Add <strong>comments</strong> (if something isn’t immediately obvious) <strong>explaining the why</strong>, not the how.</p>
-</li>
-<li>
-<p>Use meaningful variable names.</p>
-</li>
-<li>
-<p>Prefer <strong>clarity</strong> over cleverness.</p>
-</li>
-</ul>
-<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<p>If your changes affect functionality, please include appropriate tests or describe how the changes were manually tested. This project uses <a href="https://github.com/pytest-dev/pytest">pytest</a>.</p>
-<p><strong>Before submitting a PR</strong>, please ensure all tests pass by running <code>pytest</code></p>
-<h2 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
-<p>For contributors submitting PRs, please ensure:</p>
-<ul>
-<li>
-<p>You've updated the <code>README.md</code> file — if your changes affect usage or documentation</p>
-</li>
-<li>
-<p>All tests pass</p>
-</li>
-</ul>
-<p>Once your PR is merged to <code>develop</code>, maintainers will:</p>
-<ul>
-<li>
-<p>Handle version tagging and management</p>
-</li>
-<li>
-<p>Automatically build and publish releases to PyPI</p>
-</li>
-<li>
-<p>Ensure cross-platform compatibility (Windows, Linux, macOS)</p>
-</li>
-</ul>
-<h2 id="bug-reports">Bug reports<a class="headerlink" href="#bug-reports" title="Permanent link">&para;</a></h2>
-<p>If you find a bug, open an issue with the <code>bug</code> tag and:</p>
-<ul>
-<li>
-<p>A clear title</p>
-</li>
-<li>
-<p>A short description of the bug</p>
-</li>
-<li>
-<p>Steps to reproduce (if possible)</p>
-</li>
-<li>
-<p>Expected vs. actual behavior</p>
-</li>
-<li>
-<p>Environment (Python version, OS, etc.)</p>
-</li>
-</ul>
-<h2 id="feature-suggestions">Feature suggestions<a class="headerlink" href="#feature-suggestions" title="Permanent link">&para;</a></h2>
-<p>Want to propose something new? Great! Open an issue with the enhancement <code>tag</code> and describe:</p>
-<ul>
-<li>
-<p>What the feature does</p>
-</li>
-<li>
-<p>Why it would be useful</p>
-</li>
-<li>
-<p>Any technical considerations or ideas for implementation</p>
-</li>
-</ul>
-<h2 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h2>
-<p>You can reach out by opening an issue for general discussion or suggestions.</p>
-<p>Let’s keep things respectful, constructive, and collaborative.</p>
-<p>Thanks again! 💙</p>
+<p>Initialising this object is mandatory: it serves as the required argument for all subsequent processing steps, including cycle-slip detection, <abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr> calculation, and bias estimation.</p>
+<div class="admonition info">
+<p class="admonition-title">Internal State Management</p>
+<p>The <code>GNSSContext</code> also maintains internal attributes like <code>glonass_channels</code> and <code>freq_meta</code>: these are automatically populated during the ephemeris and signal processing stages.</p>
+</div>
+<h2 id="rinex-utilities">RINEX utilities 🔧<a class="headerlink" href="#rinex-utilities" title="Permanent link">&para;</a></h2>
+<p><code>PyTECGg</code> also provides utility functions to perform quick health checks on the parsed datasets and automate data retrieval.</p>
+<h3 id="data-diagnostics">Data Diagnostics<a class="headerlink" href="#data-diagnostics" title="Permanent link">&para;</a></h3>
+<p>Once data is loaded, you can use <code>summarise_rinex_data</code> to verify signal availability and navigation coverage.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Code</label><label for="__tabbed_1_2">Example Output</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">summarise_rinex_data</span>
+
+<span class="n">summarise_rinex_data</span><span class="p">(</span><span class="n">obs_data</span><span class="p">,</span> <span class="n">nav_dict</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>=======================================================
+🛰️  GNSS RINEX DATA SUMMARY
+=======================================================
+
+📅 Temporal Coverage (OBS)
+
+- Start:    2025-03-28 00:00:00+00:00
+- End:      2025-03-28 23:59:30+00:00
+- Duration: 23:59:30
+- Sampling: 30.0s
+
+📡 Constellations Breakdown (OBS)
+
+Sys  | SVs  | Total Records   | Available Signals
+-------------------------------------------------
+C    | 39   | 561,006         | C1X, C2I, C5X, C6I, C7I, D2I, L1X, L2I, L5X, L6I, L7I, S1X, S2I, S5X, S6I, S7I
+E    | 27   | 352,425         | C1X, C5X, C6X, C7X, C8X, D1X, L1X, L5X, L6X, L7X, L8X, S1X, S5X, S6X, S7X, S8X
+G    | 31   | 220,278         | C1C, C2W, C5X, L1C, L2W, L5X, S1C, S2W, S5X
+R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
+
+📖 Ephemeris Coverage (NAV)
+
+- BEIDOU  :  54 satellites have at least an ephemeris
+- GALILEO :  31 satellites have at least an ephemeris
+- GLONASS :  25 satellites have at least an ephemeris
+- GPS     :  31 satellites have at least an ephemeris
+</code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="download-rinex-files">Download RINEX files<a class="headerlink" href="#download-rinex-files" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">INGV RING (ObS)</label><label for="__tabbed_2_2">BKG IGS (NAV)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>The <code>download_obs_ring</code> function targets the <a href="https://webring.gm.ingv.it/">INGV RING</a> network. This network manages continuous GNSS stations across Italy and archives GNSS data from thousands of stations along the Eurasia-Africa plate boundary. The function handles station naming conventions: if a 4-character code like <code>GRO2</code> is provided, it is converted to the long-name format (e.g., <code>GRO200ITA</code>).</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_obs_ring</span>
+
+<span class="n">download_obs_ring</span><span class="p">(</span>
+    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;GRO200ITA&quot;</span><span class="p">,</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
+    <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The function creates a subdirectory named after the <code>station_code</code> under the provided <code>output_path</code>. The above example will produce the following structure:</p>
+<div class="highlight"><pre><span></span><code>data/
+└──<span class="w"> </span>GRO2/
+<span class="w">    </span>├──<span class="w"> </span>GRO200ITA_R_20250010000_01D_30S_MO.crx.gz
+<span class="w">    </span>├──<span class="w"> </span>GRO200ITA_R_20250550000_01D_30S_MO.crx.gz
+<span class="w">    </span>└──<span class="w"> </span>GRO200ITA_R_20252520000_01D_30S_MO.crx.gz
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Multi-constellation navigation messages, providing aggregated data from the global <a href="https://network.igs.org/">IGS network</a>, can be downloaded from the <a href="https://igs.bkg.bund.de/">BKG</a> GNSS Data Center.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_nav_bkg</span>
+
+<span class="n">download_nav_bkg</span><span class="p">(</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
+    <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The RINEX files are saved under the provided <code>output_path</code>.</p>
+</div>
+</div>
+</div>
 
 
 
@@ -1220,7 +1191,7 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../../contributing/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Contributing">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1230,20 +1201,20 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Contributing
               </div>
             </div>
           </a>
         
         
           
-          <a href="../quickstart/0-data-ingestion-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Ingestion &amp; Setup">
+          <a href="../1-preprocessing-geometry/" class="md-footer__link md-footer__link--next" aria-label="Next: Preprocessing &amp; Geometry">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Data Ingestion & Setup
+                Preprocessing & Geometry
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1311,10 +1282,10 @@ git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
