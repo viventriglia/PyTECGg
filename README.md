@@ -6,7 +6,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/PyTECGg)
 ![Tests](https://github.com/viventriglia/PyTECGg/actions/workflows/pytest.yml/badge.svg)
 ![CI](https://github.com/viventriglia/pytecgg/actions/workflows/build_publish.yml/badge.svg)
-[![Gemini Gem](https://img.shields.io/badge/Gemini-PyTECGg-1a73e8?logo=googlegemini&logoColor=white)](https://gemini.google.com/share/TUA_GEM)
+[![Gemini Gem](https://img.shields.io/badge/Gemini-PyTECGg-1a73e8?logo=googlegemini&logoColor=white)](https://gemini.google.com/gem/1qc1bu6XL6UVUtrd1MLuCQVrnLI8_nU9_?usp=sharing)
 
 
 <p align="left">
