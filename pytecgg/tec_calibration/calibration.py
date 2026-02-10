@@ -74,7 +74,7 @@ def _gg_calibration(
             continue
 
         arc_list_interval, equation_arc_idx = np.unique(
-            int_df["id_arc_valid"], return_inverse=True, sorted=False
+            int_df["id_arc_valid"], return_inverse=True
         )
 
         poly_coeffs_matrix = _polynomial_expansion(

@@ -1,12 +1,14 @@
 # PyTECGg
 
-[![PyPI version](https://img.shields.io/pypi/v/pytecgg.svg)](https://pypi.org/project/pytecgg/)
-![Python version](https://img.shields.io/badge/python-3.11--3.13-blue.svg)
-![License](https://img.shields.io/badge/license-GPLv3-blue.svg)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/PyTECGg)
-![Tests](https://github.com/viventriglia/PyTECGg/actions/workflows/pytest.yml/badge.svg)
-![CI](https://github.com/viventriglia/pytecgg/actions/workflows/build_publish.yml/badge.svg)
-[![Gemini Gem](https://img.shields.io/badge/Gemini-PyTECGg-1a73e8?logo=googlegemini&logoColor=white)](https://gemini.google.com/share/TUA_GEM)
+[![PyPI version](https://img.shields.io/pypi/v/pytecgg?color=3776ab&logo=pypi&logoColor=white)](https://pypi.org/project/pytecgg/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pytecgg?color=3776ab&logo=pypi&logoColor=white)](https://img.shields.io/pypi/dm/PyTECGg)
+[![Python version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776ab?logo=python&logoColor=white)](https://pypi.org/project/pytecgg/)
+[![License](https://img.shields.io/badge/license-GPLv3-3776ab)](https://github.com/viventriglia/PyTECGg/blob/main/LICENSE)
+
+[![Docs](https://img.shields.io/badge/docs-reference-blue?color=3776ab&logo=materialformkdocs&logoColor=white)](https://viventriglia.github.io/PyTECGg/)
+[![Tests](https://github.com/viventriglia/PyTECGg/actions/workflows/pytest.yml/badge.svg)](https://github.com/viventriglia/PyTECGg/actions/workflows/pytest.yml)
+[![Build & Publish](https://github.com/viventriglia/PyTECGg/actions/workflows/build_publish.yml/badge.svg)](https://github.com/viventriglia/PyTECGg/actions/workflows/build_publish.yml)
+[![AI Assistant](https://img.shields.io/badge/AI_Assistant-Gemini-1a73e8?logo=googlegemini&logoColor=white)](https://gemini.google.com/gem/1qc1bu6XL6UVUtrd1MLuCQVrnLI8_nU9_?usp=sharing)
 
 
 <p align="left">
