@@ -14,7 +14,8 @@ scipy = "^1.15"
 pymap3d = "^3.2"
 tzdata = "^2025.2"
 ppigrf = "^2.1.0"
-numba = "^0.60.0"
+requests = "^2.30"
+numba = "^0.64"
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.8.7"
@@ -68,5 +69,6 @@ dependencies = [
     "pymap3d >=3.2",
     "tzdata >=2025.2",
     "ppigrf >=2.1.0",
-    "numba >=0.60.0"
+    "requests >=2.30",
+    "numba >=0.64"
 ]
