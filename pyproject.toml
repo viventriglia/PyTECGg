@@ -8,7 +8,7 @@ license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
-polars = "^1.20.0"
+polars = ">=1.5.0, !=1.35.*"
 numpy = "^2.0.0"
 scipy = "^1.15"
 pymap3d = "^3.2"
@@ -63,7 +63,7 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 dependencies = [
-    "polars >=1.20.0",
+    "polars >=1.5.0, !=1.35.*",
     "numpy >=2.0.0",
     "scipy >=1.15",
     "pymap3d >=3.2",
