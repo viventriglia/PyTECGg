@@ -12,6 +12,7 @@ exclude = [
   "tests/*",
   ".github/*",
   "docs/*",
+  "tools/*",
   "mkdocs.yml",
   ".gitignore"
 ]
