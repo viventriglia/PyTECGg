@@ -1,0 +1,15 @@
+services:
+  calibrator:
+    build: .
+    image: pytecgg-batch
+    container_name: pytecgg-batch
+    environment:
+      - SAVE_PARQUET=${SAVE_PARQUET:-True}
+      - SAVE_CSV=${SAVE_CSV:-False}
+      - GENERATE_PLOTS=${GENERATE_PLOTS:-False}
+      - PLOT_DPI=${PLOT_DPI:-300}
+      - PROCESS_MODE=${PROCESS_MODE:-DAILY}
+    volumes:
+      - ${INPUT_DIR:-./input}:/data/input
+      - ${OUTPUT_DIR:-./output}:/data/output
+      - ${NAV_DIR:-./nav}:/data/nav
