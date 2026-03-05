@@ -6,7 +6,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-RUN uv pip install --system --no-cache-dir "pytecgg==1.0.2" "matplotlib>=3.10,<4"
+ENV PYTHONUNBUFFERED=1
+
+RUN uv pip install --system --no-cache-dir "pytecgg==1.0.2" "matplotlib>=3.10,<4" "plotly>=6.2,<6.3"
 
 COPY main.py .
 COPY utils.py .

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import polars as pl
@@ -13,36 +12,29 @@ from pytecgg.tec_calibration import (
     calculate_vertical_equivalent,
 )
 from pytecgg.utils import download_nav_bkg
-from utils import print_logo, plot_tec
+from utils import (
+    print_logo,
+    plot_static,
+    plot_interactive,
+    setup_logging,
+    INPUT_DIR,
+    OUTPUT_DIR,
+    NAV_DIR,
+    SAVE_CSV,
+    SAVE_PARQUET,
+    SAVE_INTERACTIVE_PLOTS,
+    SAVE_STATIC_PLOTS,
+    COLS_TO_KEEP,
+    PLOT_DPI,
+)
 
 print_logo()
-
-SAVE_PARQUET = os.getenv("SAVE_PARQUET").lower() == "true"
-SAVE_CSV = os.getenv("SAVE_CSV").lower() == "true"
-GENERATE_PLOTS = os.getenv("GENERATE_PLOTS").lower() == "true"
-PLOT_DPI = int(os.getenv("PLOT_DPI"))
-
-INPUT_DIR = Path("/data/input")
-OUTPUT_DIR = Path("/data/output")
-NAV_DIR = Path("/data/nav")
-
-COLS_TO_KEEP = [
-    "epoch",
-    "sv",
-    "id_arc",
-    "lat_ipp",
-    "lon_ipp",
-    "azi",
-    "ele",
-    "bias",
-    "stec",
-    "vtec",
-    "veq",
-]
+logger = setup_logging()
 
 
 def process_file(obs_path: Path):
-    print(f"\n>>> Working on: {obs_path.name}")
+    logger.info("")
+    logger.info(f">>> Working on: {obs_path.name}")
 
     try:
         df_obs, rec_pos, rinex_version = read_rinex_obs(str(obs_path))
@@ -60,14 +52,16 @@ def process_file(obs_path: Path):
         # Look for local NAV files containing "BRDC", year, and DOY
         nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
         if not nav_files:
-            print(
+            logger.info(
                 f"📥 Missing NAV for {year}/DOY {doy}. Downloading from BKG servers..."
             )
             download_nav_bkg(year=year, doys=[doy], output_path=NAV_DIR)
             nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
 
         if not nav_files:
-            print(f"🚫 Skipping: Unable to find or download NAV for {obs_path.name}")
+            logger.error(
+                f"🚫 Skipping: Unable to find or download NAV for {obs_path.name}"
+            )
             return
 
         nav_dict = read_rinex_nav(str(nav_files[0]))
@@ -101,20 +95,26 @@ def process_file(obs_path: Path):
 
         if SAVE_PARQUET:
             df_spool.write_parquet(f"{base_filename}_calibrated.parquet")
-            print(f"💾 .parquet file saved")
+            logger.info(f"💾 .parquet file saved")
 
         if SAVE_CSV:
             df_spool.write_csv(f"{base_filename}_calibrated.csv")
-            print(f"💾 .csv file saved")
+            logger.info(f"💾 .csv file saved")
 
-        if GENERATE_PLOTS:
+        if SAVE_STATIC_PLOTS:
             plot_path = f"{base_filename}_calibrated.png"
             date_str = first_epoch.strftime("%d/%m/%Y")
-            plot_tec(df_spool, plot_path, PLOT_DPI, rec_name, date_str)
-            print(f"📈 .png plot saved")
+            plot_static(df_spool, plot_path, PLOT_DPI, rec_name, date_str)
+            logger.info(f"📈 .png static plot saved")
+
+        if SAVE_INTERACTIVE_PLOTS:
+            plot_path = f"{base_filename}_calibrated.html"
+            date_str = first_epoch.strftime("%d/%m/%Y")
+            plot_interactive(df_spool, plot_path, rec_name, date_str)
+            logger.info(f"📈 .html interactive plot saved")
 
     except Exception as e:
-        print(f"❌ Error during processing of {obs_path.name}: {str(e)}")
+        logger.error(f"❌ Error during processing of {obs_path.name}: {str(e)}")
 
 
 def main():
