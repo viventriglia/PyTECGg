@@ -12,12 +12,21 @@ import polars as pl
 
 ## Variables
 
-VERBOSE = int(os.getenv("VERBOSE"))
-SAVE_PARQUET = os.getenv("SAVE_PARQUET").lower() == "true"
-SAVE_CSV = os.getenv("SAVE_CSV").lower() == "true"
-SAVE_STATIC_PLOTS = os.getenv("SAVE_STATIC_PLOTS").lower() == "true"
-SAVE_INTERACTIVE_PLOTS = os.getenv("SAVE_INTERACTIVE_PLOTS").lower() == "true"
-PLOT_DPI = int(os.getenv("PLOT_DPI"))
+VERBOSE = int(os.getenv("VERBOSE", "1"))
+PROCESS_MODE = os.getenv("PROCESS_MODE", "DAILY").upper()
+
+SAVE_PARQUET = os.getenv("SAVE_PARQUET", "True").lower() == "true"
+SAVE_CSV = os.getenv("SAVE_CSV", "False").lower() == "true"
+SAVE_STATIC_PLOTS = os.getenv("SAVE_STATIC_PLOTS", "True").lower() == "true"
+SAVE_INTERACTIVE_PLOTS = os.getenv("SAVE_INTERACTIVE_PLOTS", "True").lower() == "true"
+PLOT_DPI = int(os.getenv("PLOT_DPI", "300"))
+
+H_IPP = float(os.getenv("H_IPP", "350000"))
+MIN_ELEVATION = float(os.getenv("MIN_ELEVATION", "20"))
+ARC_THRESHOLD_ABS = float(os.getenv("ARC_THRESHOLD_ABS", "10"))
+ARC_THRESHOLD_STD = float(os.getenv("ARC_THRESHOLD_STD", "10"))
+ARC_THRESHOLD_JUMP = float(os.getenv("ARC_THRESHOLD_JUMP", "5"))
+ARC_MIN_LENGTH = int(os.getenv("ARC_MIN_LENGTH", "120"))
 
 INPUT_DIR = Path("/data/input")
 OUTPUT_DIR = Path("/data/output")
@@ -110,6 +119,11 @@ def print_logo():
     print(logo)
 
 
+def is_multi_day(df_plt: pl.DataFrame) -> bool:
+    duration = (df_plt["epoch"].max() - df_plt["epoch"].min()).total_seconds()
+    return duration > 86400
+
+
 def plot_static(
     df_plt: pl.DataFrame, output_path: str, dpi: int, station_name: str, date_str: str
 ) -> None:
@@ -188,8 +202,12 @@ def plot_static(
     )
 
     ax.set_xlim(df_plt["epoch"].min(), df_plt["epoch"].max())
-    ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    if is_multi_day(df_plt):
+        ax.xaxis.set_major_locator(mdates.DayLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+    else:
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
     plt.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
@@ -221,7 +239,7 @@ def plot_interactive(
                     ),
                     name=f"sTEC ({CONSTELLATION_NAMES.get(const, const)})",
                     text=df_const["sv"],
-                    hovertemplate="<b>SV:</b> %{text}<br><b>Time:</b> %{x|%H:%M:%S}<br><b>sTEC:</b> %{y:.2f} TECu<extra></extra>",
+                    hovertemplate="<b>SV:</b> %{text}<br><b>Time:</b> %{x|%Y-%m-%d %H:%M:%S}<br><b>sTEC:</b> %{y:.2f} TECu<extra></extra>",
                 )
             )
 
@@ -233,9 +251,11 @@ def plot_interactive(
             mode="lines",
             line=dict(color=veq_color, width=3.5),
             name="VEq",
-            hovertemplate="<b>Time:</b> %{x|%H:%M:%S}<br><b>VEq:</b> %{y:.2f} TECu<extra></extra>",
+            hovertemplate="<b>Time:</b> %{x|%Y-%m-%d %H:%M:%S}<br><b>VEq:</b> %{y:.2f} TECu<extra></extra>",
         )
     )
+
+    x_tickformat = "%d %b\n%Y" if is_multi_day(df_plt) else "%H:%M"
 
     fig.update_layout(
         title=dict(
@@ -254,7 +274,7 @@ def plot_interactive(
             gridwidth=1,
             griddash="dash",
             linecolor=grid_color,
-            tickformat="%H:%M",
+            tickformat=x_tickformat,
         ),
         yaxis=dict(
             title="TECu",

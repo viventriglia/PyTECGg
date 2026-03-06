@@ -32,16 +32,22 @@ Open the newly created `.env` file, define your external paths and toggle the de
 
 | Variable | Type | Default | Description |
 | :--- | :---: | :---: | :--- |
-| `INPUT_DIR` | Path | - | Directory containing input RINEX observation files. |
-| `OUTPUT_DIR` | Path | - | Directory where results and logs will be saved. |
-| `NAV_DIR` | Path | - | Directory for navigation (BRDC) files. |
-| `SAVE_PARQUET` | Boolean | `True` | Exports calibrated data as a `.parquet` file. |
-| `SAVE_CSV` | Boolean | `False` | Exports calibrated data as a `.csv` file. |
-| `SAVE_STATIC_PLOTS` | Boolean | `False` | Generates a static `.png` plot. |
-| `SAVE_INTERACTIVE_PLOTS`| Boolean | `False` | Generates an interactive `.html` plot. |
-| `PLOT_DPI` | Integer | `300` | Resolution for the static `.png` plots. |
-| `VERBOSE` | Integer | `1` | Logging level. `0`: Silent, `1`: Standard, `2`: Verbose, `3`: Verbose + saves `.log` file. |
-| `CALIBRATION_MODE` | String | `DAILY` | Processing mode: `DAILY` (file-by-file) or `STATION_BATCH` (multi-day grouping). |
+| `INPUT_DIR` | Path | - | Directory containing input RINEX observation files |
+| `OUTPUT_DIR` | Path | - | Directory where results and logs will be saved |
+| `NAV_DIR` | Path | - | Directory for navigation (BRDC) files |
+| `SAVE_PARQUET` | Boolean | `True` | Exports calibrated data as a `.parquet` file |
+| `SAVE_CSV` | Boolean | `False` | Exports calibrated data as a `.csv` file |
+| `SAVE_STATIC_PLOTS` | Boolean | `True` | Generates a static `.png` plot |
+| `SAVE_INTERACTIVE_PLOTS`| Boolean | `False` | Generates an interactive `.html` plot |
+| `PLOT_DPI` | Integer | `300` | Resolution for the static `.png` plots |
+| `VERBOSE` | Integer | `1` | Logging level. `0`: Silent, `1`: Standard, `2`: Verbose, `3`: Verbose + `.log` file |
+| `PROCESS_MODE` | String | `DAILY` | Processing mode: `DAILY` (file-by-file) or `STATION_BATCH` (multi-day grouping) |
+| `H_IPP` | Float | `350000` | Height of the Ionospheric Pierce Point (IPP) in meters |
+| `MIN_ELEVATION` | Float | `20` | Minimum satellite elevation angle in degrees |
+| `ARC_THRESHOLD_ABS` | Float | `10` | Absolute threshold for cycle slip/arc detection |
+| `ARC_THRESHOLD_STD` | Float | `10` | Standard deviation threshold for cycle slip/arc detection |
+| `ARC_THRESHOLD_JUMP` | Float | `5` | Jump threshold for continuous phase arc extraction |
+| `ARC_MIN_LENGTH` | Integer | `120` | Minimum number of valid epochs required to keep an arc |
 
 
 ## 🚀 How to Run
