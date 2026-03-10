@@ -4,7 +4,11 @@ from requests.exceptions import RequestException
 
 import pytest
 
-from pytecgg.utils.download_rinex import download_obs_ring, _download_file
+from pytecgg.utils.download_rinex import (
+    download_obs_ring,
+    download_nav_bkg,
+    _download_file,
+)
 
 
 def test_obs_ring_url_construction():
@@ -67,3 +71,75 @@ def test_download_file_success(tmp_path):
     assert dest.exists()
     assert dest.read_bytes() == b"chunk1chunk2"
     assert not dest.with_suffix(".tmp").exists()
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_nav_bkg_scraping_priority_1_igs(mock_get, mock_batch_download, tmp_path):
+    """
+    Verify that the function prioritises IGS files when available and constructs
+    the correct download task.
+    """
+    mock_response = MagicMock()
+    mock_response.text = """
+        <a href="BRDC00IGS_R_20250870000_01D_MN.rnx.gz">link</a>
+        <a href="brdc0870.25p.gz">link</a>
+    """
+    mock_get.return_value = mock_response
+    download_nav_bkg(2025, [87], tmp_path)
+
+    assert mock_batch_download.called
+    tasks = mock_batch_download.call_args[0][0]
+    assert len(tasks) == 1
+
+    url, path = tasks[0]
+    assert "BRDC00IGS" in url
+    assert path.name == "BRDC00IGS_R_20250870000_01D_MN.rnx.gz"
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_nav_bkg_scraping_priority_2_fallback(mock_get, mock_batch_download, tmp_path):
+    """
+    Verify that the function prioritises alternative centers (e.g. WRD) when IGS files
+    are not available.
+    """
+    mock_response = MagicMock()
+    mock_response.text = '<a href="BRDC00WRD_R_20201420000_01D_MN.rnx.gz">link</a>'
+    mock_get.return_value = mock_response
+    download_nav_bkg(2020, [142], tmp_path)
+    tasks = mock_batch_download.call_args[0][0]
+    url, path = tasks[0]
+    assert "BRDC00WRD" in url
+    assert path.name == "BRDC00WRD_R_20201420000_01D_MN.rnx.gz"
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_nav_bkg_scraping_priority_3_legacy(mock_get, mock_batch_download, tmp_path):
+    """
+    Verify the fallback to legacy .p.gz files for older years.
+    """
+    mock_response = MagicMock()
+    mock_response.text = '<a href="brdc1190.14p.gz">link</a>'
+    mock_get.return_value = mock_response
+    download_nav_bkg(2014, [119], tmp_path)
+    tasks = mock_batch_download.call_args[0][0]
+    url, path = tasks[0]
+    assert "brdc1190.14p.gz" in url
+    assert path.name == "brdc1190.14p.gz"
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_nav_bkg_scraping_no_match(mock_get, mock_batch_download, tmp_path):
+    """
+    Verify that _batch_download is NOT called if there are no useful files.
+    """
+    mock_response = MagicMock()
+    mock_response.text = (
+        '<a href="brdc1190.14n.Z">link</a> <a href="brdc1190.14p.Z">link</a>'
+    )
+    mock_get.return_value = mock_response
+    download_nav_bkg(2014, [119], tmp_path)
+    mock_batch_download.assert_not_called()
