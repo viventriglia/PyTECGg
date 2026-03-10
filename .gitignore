@@ -58,3 +58,7 @@ scripts/
 !/README.md
 !/CODE_OF_CONDUCT.md
 !/CONTRIBUTING.md
+
+# Development Docker files
+/tools/docker/Dockerfile.dev
+/tools/docker/docker-compose.override.yml

@@ -43,6 +43,13 @@ logger = setup_logging()
 # ==========================================
 
 
+def get_nav_files(year: int, doy: int) -> list[Path]:
+    yy = str(year)[-2:]
+    files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+    files.extend(NAV_DIR.glob(f"brdc{doy:03d}0.{yy}*"))
+    return files
+
+
 def merge_nav_dicts(nav_dicts: list[dict]) -> dict:
     master_nav = {}
     for day_nav in nav_dicts:
@@ -142,14 +149,20 @@ def process_daily(obs_path: Path):
         first_epoch = df_obs["epoch"][0]
         year, doy = first_epoch.year, first_epoch.timetuple().tm_yday
 
-        nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+        nav_files = get_nav_files(year, doy)
         if not nav_files:
             logger.info(f"📥 Missing NAV for {year}/DOY {doy}. Downloading...")
             download_nav_bkg(year=year, doys=[doy], output_path=NAV_DIR)
-            nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+            nav_files = get_nav_files(year, doy)
 
         if not nav_files:
-            logger.error(f"🚫 Skipping: Unable to find NAV for {obs_path.name}")
+            logger.error(f"🚫 Unable to find or auto-download NAV for {obs_path.name}")
+            logger.error(
+                f"💡 ACTION REQUIRED: Please manually set a valid NAV file for {year} DOY {doy},"
+            )
+            logger.error(
+                f"   under your local 'nav' directory, and run the container again."
+            )
             logger.info("")
             return
 
@@ -191,17 +204,27 @@ def process_station_batch(station_id: str, obs_files: list[Path]):
 
         nav_dicts = []
         for year, doy in sorted(all_doys):
-            nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+            nav_files = get_nav_files(year, doy)
             if not nav_files:
                 logger.info(f"📥 Missing NAV for {year}/DOY {doy}. Downloading...")
                 download_nav_bkg(year=year, doys=[doy], output_path=NAV_DIR)
-                nav_files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+                nav_files = get_nav_files(year, doy)
 
             if nav_files:
                 nav_dicts.append(read_rinex_nav(str(nav_files[0])))
+            else:
+                logger.warning(f"⚠️ Could not obtain NAV for {year} DOY {doy}")
 
         if not nav_dicts:
-            logger.error(f"🚫 Skipping batch {station_id}: No NAV files found.")
+            logger.error(
+                f"🚫 Skipping batch {station_id}: Unable to find or auto-download required NAV files."
+            )
+            logger.error(
+                f"💡 ACTION REQUIRED: Please manually set the NAV files for the period"
+            )
+            logger.error(
+                f"   under your local 'nav' directory, and run the container again."
+            )
             logger.info("")
             return
 
