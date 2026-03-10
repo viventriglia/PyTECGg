@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
     
     
       
@@ -1246,7 +1246,10 @@ subdirectories.</p>
 
         <p>Download global navigation RINEX files (BRDC) from the BKG server.</p>
 <p>BRDC files contain multi-constellation navigation messages aggregated
-from the global IGS station network.</p>
+from the global IGS station network. The function dynamically scrapes
+the BKG HTTP directories to find the best available navigation file format
+(modern IGS, other RINEX 3 centers like WRD/DLR, or legacy .gz formats)
+for each given DOY.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1281,7 +1284,7 @@ from the global IGS station network.</p>
                 <code>doys</code>
             </td>
             <td>
-                  <code><span title="List">List</span>[<span title="int">int</span>]</code>
+                  <code><span title="list">list</span>[<span title="int">int</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
