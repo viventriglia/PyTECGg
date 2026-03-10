@@ -18,7 +18,7 @@ PROCESS_MODE = os.getenv("PROCESS_MODE", "DAILY").upper()
 SAVE_PARQUET = os.getenv("SAVE_PARQUET", "True").lower() == "true"
 SAVE_CSV = os.getenv("SAVE_CSV", "False").lower() == "true"
 SAVE_STATIC_PLOTS = os.getenv("SAVE_STATIC_PLOTS", "True").lower() == "true"
-SAVE_INTERACTIVE_PLOTS = os.getenv("SAVE_INTERACTIVE_PLOTS", "True").lower() == "true"
+SAVE_INTERACTIVE_PLOTS = os.getenv("SAVE_INTERACTIVE_PLOTS", "False").lower() == "true"
 PLOT_DPI = int(os.getenv("PLOT_DPI", "300"))
 
 H_IPP = float(os.getenv("H_IPP", "350000"))
