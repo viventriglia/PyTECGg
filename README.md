@@ -49,6 +49,16 @@ Read the **documentation** [**here**](https://viventriglia.github.io/PyTECGg/).
 > [!TIP]
 > **In a hurry?** You can [**ask the PyTECGg AI assistant**](https://gemini.google.com/gem/1qc1bu6XL6UVUtrd1MLuCQVrnLI8_nU9_?usp=sharing) for instant help!
 
+
+## Batch Calibrator
+
+Do you want to process large amounts of RINEX files without installing Python dependencies or writing code?
+
+Check out this out-of-the-box **[PyTECGg Batch Calibrator](tools/docker/README.md)**.
+
+It provides a containerised solution to automatically batch process, calibrate, and plot GNSS data with zero configuration required.
+
+
 ## Contributing
 
 We welcome contributions from everyone!

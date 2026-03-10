@@ -1,0 +1,23 @@
+services:
+  calibrator:
+    build: .
+    image: pytecgg-batch
+    container_name: pytecgg-batch
+    environment:
+      - SAVE_PARQUET=${SAVE_PARQUET:-True}
+      - SAVE_CSV=${SAVE_CSV:-False}
+      - SAVE_STATIC_PLOTS=${SAVE_STATIC_PLOTS:-True}
+      - SAVE_INTERACTIVE_PLOTS=${SAVE_INTERACTIVE_PLOTS:-False}
+      - PLOT_DPI=${PLOT_DPI:-300}
+      - VERBOSE=${VERBOSE:-1}
+      - PROCESS_MODE=${PROCESS_MODE:-DAILY}
+      - H_IPP=${H_IPP:-350000}
+      - MIN_ELEVATION=${MIN_ELEVATION:-20}
+      - ARC_THRESHOLD_ABS=${ARC_THRESHOLD_ABS:-10}
+      - ARC_THRESHOLD_STD=${ARC_THRESHOLD_STD:-10}
+      - ARC_THRESHOLD_JUMP=${ARC_THRESHOLD_JUMP:-5}
+      - ARC_MIN_LENGTH=${ARC_MIN_LENGTH:-120}
+    volumes:
+      - ${INPUT_DIR:-./input}:/data/input
+      - ${OUTPUT_DIR:-./output}:/data/output
+      - ${NAV_DIR:-./nav}:/data/nav

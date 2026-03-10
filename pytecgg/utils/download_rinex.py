@@ -1,3 +1,4 @@
+import re
 import requests
 import logging
 from pathlib import Path
@@ -131,13 +132,16 @@ def download_nav_bkg(year: int, doys: list[int], output_path: Path) -> None:
     Download global navigation RINEX files (BRDC) from the BKG server.
 
     BRDC files contain multi-constellation navigation messages aggregated
-    from the global IGS station network.
+    from the global IGS station network. The function dynamically scrapes
+    the BKG HTTP directories to find the best available navigation file format
+    (modern IGS, other RINEX 3 centers like WRD/DLR, or legacy .gz formats)
+    for each given DOY.
 
     Parameters
     ----------
     year : int
         The observation year (e.g., 2023).
-    doys : List[int]
+    doys : list[int]
         A list of Days Of Year (DOY).
     output_path : Path
         The directory where the navigation files will be saved.
@@ -149,10 +153,46 @@ def download_nav_bkg(year: int, doys: list[int], output_path: Path) -> None:
     base_url = "https://igs.bkg.bund.de/root_ftp/IGS/BRDC"
 
     tasks = []
-    for doy in doys:
-        doy_str = f"{doy:03d}"
-        filename = f"BRDC00IGS_R_{year}{doy_str}0000_01D_MN.rnx.gz"
-        url = f"{base_url}/{year}/{doy_str}/{filename}"
-        tasks.append((url, output_path / filename))
+    with requests.Session() as session:
+        session.headers.update({"User-Agent": USER_AGENT})
 
-    _batch_download(tasks)
+        for doy in doys:
+            doy_str = f"{doy:03d}"
+            yy = str(year)[-2:]
+            dir_url = f"{base_url}/{year}/{doy_str}/"
+
+            try:
+                resp = session.get(dir_url, timeout=15)
+                resp.raise_for_status()
+                # Extract only .gz files from the HTML directory listing
+                available_files = re.findall(r'href="([^"/]+\.gz)"', resp.text)
+            except Exception as e:
+                logger.error(f"Could not access BKG directory {dir_url}: {e}")
+                continue
+
+            # Priority list for file formats
+            patterns = [
+                r"^BRDC00IGS_R_.*_MN\.rnx\.gz$",  # 1: Official IGS
+                r"^BRDC00.*_R_.*_MN\.rnx\.gz$",  # 2: Other RINEX 3 centers (WRD, DLR, etc.)
+                rf"^brdc{doy_str}0\.{yy}p\.gz$",  # 3: Legacy Mixed .p.gz
+            ]
+
+            target_filename = None
+            for pattern in patterns:
+                for file in available_files:
+                    if re.match(pattern, file):
+                        target_filename = file
+                        break
+                if target_filename:
+                    break
+
+            if target_filename:
+                url = f"{dir_url}{target_filename}"
+                tasks.append((url, output_path / target_filename))
+            else:
+                logger.warning(
+                    f"No compatible NAV file found on BKG server for {year}/DOY {doy_str}."
+                )
+
+    if tasks:
+        _batch_download(tasks)
