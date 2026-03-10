@@ -84,6 +84,7 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.cp }}-*
           CIBW_SKIP: "*-musllinux*"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           output-dir: wheelhouse
 
