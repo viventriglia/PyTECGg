@@ -79,14 +79,24 @@ jobs:
         run: |
           echo "Commit hash: $(git rev-parse HEAD)"
 
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==3.0.1
+
+      - name: Pre-download virtualenv.pyz (Error 429 workaround)
+        if: runner.os == 'macOS'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ~/Library/Caches/cibuildwheel
+          curl -L -f -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://raw.githubusercontent.com/pypa/get-virtualenv/20.31.2/public/virtualenv.pyz" \
+            -o ~/Library/Caches/cibuildwheel/virtualenv-20.31.2.pyz
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.0.1
         env:
           CIBW_BUILD: ${{ matrix.cp }}-*
           CIBW_SKIP: "*-musllinux*"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          output-dir: wheelhouse
+        run: cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v4
         with:
