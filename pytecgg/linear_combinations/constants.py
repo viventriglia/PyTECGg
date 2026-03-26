@@ -32,6 +32,34 @@ PHASE_FREQ_PRIORITY = {
     ],
     "R": [("L2", "L1")],
 }
+
+QUALITY_BAND_PAIR_PRIORITY = {
+    "G": [("L5", "L1"), ("L2", "L1")],
+    "E": [("L5", "L1"), ("L8", "L1"), ("L7", "L1")],
+    "C": [
+        ("L5", "L2"),
+        ("L6", "L2"),
+        ("L7", "L2"),
+        ("L7", "L1"),
+        ("L6", "L1"),
+        ("L5", "L1"),
+    ],
+    "R": [("L2", "L1")],
+}
+
+BAND_PAIR_PRIORITY_BY_MODE = {
+    "legacy": PHASE_FREQ_PRIORITY,
+    "quality": QUALITY_BAND_PAIR_PRIORITY,
+    "availability": {
+        system: list(
+            dict.fromkeys(
+                QUALITY_BAND_PAIR_PRIORITY.get(system, [])
+                + PHASE_FREQ_PRIORITY.get(system, [])
+            )
+        )
+        for system in set(PHASE_FREQ_PRIORITY) | set(QUALITY_BAND_PAIR_PRIORITY)
+    },
+}
 CODE_FREQ_PRIORITY = {
     "G": [("C2", "C1"), ("C5", "C1")],
     "E": [("C5", "C1"), ("C7", "C1"), ("C8", "C1")],

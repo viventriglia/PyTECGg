@@ -28,7 +28,9 @@ from pytecgg.tec_calibration import extract_arcs
 df_lc = calculate_linear_combinations(
     df_obs,
     ctx=ctx,
-    combinations=["gflc_phase", "gflc_code", "mw"]
+    combinations=["gflc_phase", "gflc_code", "mw"],
+    selection_mode="quality",
+    band_overrides={"G": ("L1", "L5")},
 )
 
 # Identify continuous arcs, detect cycle slips
@@ -43,6 +45,9 @@ df_arcs = extract_arcs(
 ```
 
 Processing parameters and options:
+
+- `selection_mode`: ranking policy for automatic dual-frequency selection. Use `quality` to prefer higher-quality band pairs when coverage is comparable, `availability` to maximise complete observations, or `legacy` to keep legacy-style priorities.
+- `band_overrides`: optional per-system override for the selected band pair, for example `{"G": ("L1", "L5")}`.
 
 - `combinations`: defines which signals to compute. Options include GFLC (`gflc_phase`, `gflc_code`), IFLC (`iflc_phase`, `iflc_code`), and MW (`mw`).
 - `extract_arcs`: outputs a Polars `DataFrame` containing unique arc identifiers (`id_arc_valid`) and arc-levelled GFLC values, essential for accurate bias estimation.

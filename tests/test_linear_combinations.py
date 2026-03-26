@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import polars as pl
 
+from pytecgg.context import GNSSContext
 from pytecgg.linear_combinations.mw import _calculate_melbourne_wubbena
 from pytecgg.linear_combinations.gflc import _calculate_gflc_phase
 from pytecgg.linear_combinations.cs_lol_detection import detect_cs_lol
@@ -158,3 +159,97 @@ def test_calculate_lc_with_real_file(parsed_rinex_obs_data, real_context):
     assert set(df_lc.columns).issuperset(expected_cols)
     assert len(real_context.freq_meta) == 3
     assert "G" in real_context.freq_meta
+
+
+def test_selection_mode_quality_prefers_l1_l5_when_available():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 6,
+            "sv": ["G01"] * 6,
+            "observable": ["L1C", "L2W", "L5Q", "C1C", "C2W", "C5Q"],
+            "value": [1000.0, 800.0, 750.0, 20_000_000.0, 20_000_010.0, 20_000_020.0],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(obs_df, ctx, selection_mode="quality")
+
+    assert not df_lc.is_empty()
+    assert ctx.freq_meta["G"] == (1176.45, 1575.42)
+
+
+def test_selection_mode_availability_prefers_more_complete_pair():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    epochs = [
+        datetime(2023, 1, 1, 0, 0, 0),
+        datetime(2023, 1, 1, 0, 0, 30),
+    ]
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [
+                epochs[0],
+                epochs[0],
+                epochs[0],
+                epochs[0],
+                epochs[0],
+                epochs[0],
+                epochs[1],
+                epochs[1],
+                epochs[1],
+                epochs[1],
+            ],
+            "sv": ["G01"] * 10,
+            "observable": [
+                "L1C",
+                "L2W",
+                "L5Q",
+                "C1C",
+                "C2W",
+                "C5Q",
+                "L1C",
+                "L2W",
+                "C1C",
+                "C2W",
+            ],
+            "value": [
+                1000.0,
+                800.0,
+                750.0,
+                20_000_000.0,
+                20_000_010.0,
+                20_000_020.0,
+                1000.1,
+                800.1,
+                20_000_000.1,
+                20_000_010.1,
+            ],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(obs_df, ctx, selection_mode="availability")
+
+    assert not df_lc.is_empty()
+    assert df_lc.height == 2
+    assert ctx.freq_meta["G"] == (1227.6, 1575.42)
+
+
+def test_band_overrides_force_user_selected_pair():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 6,
+            "sv": ["G01"] * 6,
+            "observable": ["L1C", "L2W", "L5Q", "C1C", "C2W", "C5Q"],
+            "value": [1000.0, 800.0, 750.0, 20_000_000.0, 20_000_010.0, 20_000_020.0],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df,
+        ctx,
+        selection_mode="legacy",
+        band_overrides={"G": ("L1", "L5")},
+    )
+
+    assert not df_lc.is_empty()
+    assert ctx.freq_meta["G"] == (1176.45, 1575.42)

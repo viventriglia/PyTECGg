@@ -57,7 +57,9 @@ def merge_nav_dicts(nav_dicts: list[dict]) -> dict:
             if system not in master_nav:
                 master_nav[system] = df_nav
             else:
-                master_nav[system] = pl.concat([master_nav[system], df_nav])
+                master_nav[system] = pl.concat(
+                    [master_nav[system], df_nav], how="diagonal"
+                )
     return master_nav
 
 
@@ -263,7 +265,8 @@ def main():
     files = [
         f
         for f in INPUT_DIR.iterdir()
-        if f.suffix.lower() in extensions or f.name.endswith(("o", "O"))
+        if f.is_file()
+        and (f.suffix.lower() in extensions or f.name.endswith(("o", "O")))
     ]
 
     if not files:
