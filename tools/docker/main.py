@@ -79,7 +79,7 @@ def run_calibration_pipeline(
     )
 
     ephem_dict = prepare_ephemeris(nav_dict, ctx=ctx)
-    df_lc = calculate_linear_combinations(df_obs, ctx=ctx)
+    df_lc = calculate_linear_combinations(df_obs, ctx=ctx, selection_mode="quality")
 
     df_arcs = extract_arcs(
         df=df_lc,

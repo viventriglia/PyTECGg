@@ -7,6 +7,7 @@ from pytecgg.linear_combinations.mw import _calculate_melbourne_wubbena
 from pytecgg.linear_combinations.gflc import _calculate_gflc_phase
 from pytecgg.linear_combinations.cs_lol_detection import detect_cs_lol
 from pytecgg.linear_combinations.lc_calculation import calculate_linear_combinations
+from pytecgg.tec_calibration import extract_arcs
 
 
 def test_mw_cycle_slip():
@@ -253,3 +254,113 @@ def test_band_overrides_force_user_selected_pair():
 
     assert not df_lc.is_empty()
     assert ctx.freq_meta["G"] == (1176.45, 1575.42)
+
+
+def test_beidou_selection_is_per_satellite():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["C"])
+    epoch = datetime(2023, 1, 1, 0, 0, 0)
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [epoch] * 12,
+            "sv": ["C01"] * 6 + ["C02"] * 6,
+            "observable": [
+                "L1I",
+                "L5Q",
+                "C1I",
+                "C5Q",
+                "L1X",
+                "C1X",
+                "L1I",
+                "L7I",
+                "C1I",
+                "C7I",
+                "L1X",
+                "C1X",
+            ],
+            "value": [
+                1000.0,
+                800.0,
+                20_000_000.0,
+                20_000_010.0,
+                1000.1,
+                20_000_000.1,
+                1100.0,
+                900.0,
+                21_000_000.0,
+                21_000_010.0,
+                1100.1,
+                21_000_000.1,
+            ],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(obs_df, ctx, selection_mode="quality")
+
+    assert not df_lc.is_empty()
+    assert set(df_lc["sv"]) == {"C01", "C02"}
+    assert ctx.freq_meta["C"] == {
+        "C01": (1176.45, 1561.098),
+        "C02": (1207.14, 1561.098),
+    }
+
+
+def test_extract_arcs_accepts_per_satellite_beidou_freq_meta():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["C"])
+    ctx.freq_meta["C"] = {
+        "C01": (1176.45, 1561.098),
+        "C02": (1207.14, 1561.098),
+    }
+
+    epochs = [
+        datetime(2023, 1, 1, 0, 0, 0),
+        datetime(2023, 1, 1, 0, 0, 30),
+        datetime(2023, 1, 1, 0, 1, 0),
+    ]
+    df = pl.DataFrame(
+        {
+            "epoch": epochs * 2,
+            "sv": ["C01"] * 3 + ["C02"] * 3,
+            "gflc_phase": [10.0, 10.2, 10.4, 20.0, 20.2, 20.4],
+            "gflc_code": [11.0, 11.2, 11.4, 21.0, 21.2, 21.4],
+            "mw": [1.0, 1.0, 1.0, 2.0, 2.0, 2.0],
+        }
+    )
+
+    result = extract_arcs(df, ctx, min_arc_length=1, max_gap=timedelta(minutes=1))
+
+    assert not result.is_empty()
+    assert "gflc_levelled" in result.columns
+    assert result.filter(pl.col("id_arc_valid").is_not_null()).height == 6
+
+
+def test_beidou_band_override_is_applied_per_satellite():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["C"])
+    epoch = datetime(2023, 1, 1, 0, 0, 0)
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [epoch] * 8,
+            "sv": ["C01"] * 4 + ["C02"] * 4,
+            "observable": ["L1I", "L5Q", "C1I", "C5Q", "L1I", "L7I", "C1I", "C7I"],
+            "value": [
+                1000.0,
+                800.0,
+                20_000_000.0,
+                20_000_010.0,
+                1100.0,
+                900.0,
+                21_000_000.0,
+                21_000_010.0,
+            ],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df,
+        ctx,
+        selection_mode="quality",
+        band_overrides={"C": ("L1", "L7")},
+    )
+
+    assert not df_lc.is_empty()
+    assert set(df_lc["sv"]) == {"C02"}
+    assert ctx.freq_meta["C"] == {"C02": (1207.14, 1561.098)}

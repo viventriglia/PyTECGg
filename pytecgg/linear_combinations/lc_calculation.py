@@ -8,7 +8,66 @@ from .constants import FREQ_BANDS
 from .gflc import _calculate_gflc_code, _calculate_gflc_phase
 from .iflc import _calculate_iflc_code, _calculate_iflc_phase
 from .mw import _calculate_melbourne_wubbena
-from .observables import SelectionMode, select_observable_pair
+from .observables import (
+    SelectedSignalPair,
+    SelectionMode,
+    select_observable_pair,
+    select_observable_pair_from_pivot,
+)
+
+PER_SATELLITE_SELECTION_SYSTEMS = {"C"}
+
+
+def _apply_linear_combinations(
+    df_step: pl.DataFrame,
+    selection: SelectedSignalPair,
+    freq1: pl.Expr,
+    freq2: pl.Expr,
+    combinations: list[
+        Literal["gflc_phase", "gflc_code", "mw", "iflc_phase", "iflc_code"]
+    ],
+) -> pl.DataFrame:
+    if "gflc_phase" in combinations:
+        df_step = df_step.with_columns(
+            _calculate_gflc_phase(
+                pl.col(selection.phase1), pl.col(selection.phase2), freq1, freq2
+            ).alias("gflc_phase")
+        )
+    if "gflc_code" in combinations:
+        df_step = df_step.with_columns(
+            _calculate_gflc_code(
+                pl.col(selection.code1), pl.col(selection.code2), freq1, freq2
+            ).alias("gflc_code")
+        )
+    if "mw" in combinations:
+        df_step = df_step.with_columns(
+            _calculate_melbourne_wubbena(
+                pl.col(selection.phase1),
+                pl.col(selection.phase2),
+                pl.col(selection.code1),
+                pl.col(selection.code2),
+                freq1,
+                freq2,
+            ).alias("mw")
+        )
+    if "iflc_phase" in combinations:
+        df_step = df_step.with_columns(
+            _calculate_iflc_phase(
+                pl.col(selection.phase1), pl.col(selection.phase2), freq1, freq2
+            ).alias("iflc_phase")
+        )
+    if "iflc_code" in combinations:
+        df_step = df_step.with_columns(
+            _calculate_iflc_code(
+                pl.col(selection.code1), pl.col(selection.code2), freq1, freq2
+            ).alias("iflc_code")
+        )
+
+    drop_cols = [selection.phase1, selection.phase2, selection.code1, selection.code2]
+    if "_k" in df_step.columns:
+        drop_cols.append("_k")
+
+    return df_step.drop(drop_cols)
 
 
 def calculate_linear_combinations(
@@ -48,6 +107,12 @@ def calculate_linear_combinations(
     -------
     pl.DataFrame
         DataFrame with the requested linear combinations.
+
+    Notes
+    -----
+    BeiDou currently uses per-satellite band-pair selection to cope with mixed
+    signal availability across satellite generations, while other systems retain
+    the per-constellation selection policy.
     """
     results = []
     normalised_overrides: dict[str, tuple[str, str]] = {}
@@ -58,6 +123,65 @@ def calculate_linear_combinations(
             normalised_overrides[system_symbol] = band_pair
 
     for system_ in ctx.systems:
+        df_sys = obs_data.filter(pl.col("sv").str.starts_with(system_))
+        if df_sys.is_empty():
+            continue
+
+        if system_ in PER_SATELLITE_SELECTION_SYSTEMS:
+            df_pivot = df_sys.pivot(
+                values="value",
+                index=["epoch", "sv"],
+                on="observable",
+                aggregate_function="first",
+            )
+            if df_pivot.is_empty():
+                continue
+
+            freq_meta_by_sv = {}
+            for df_sv in df_pivot.sort(["sv", "epoch"]).partition_by(
+                "sv", maintain_order=True
+            ):
+                sv = df_sv.get_column("sv")[0]
+                selection = select_observable_pair_from_pivot(
+                    df_sv,
+                    system=system_,
+                    selection_mode=selection_mode,
+                    band_override=normalised_overrides.get(system_),
+                )
+                if selection is None:
+                    continue
+
+                try:
+                    f1 = FREQ_BANDS[system_][selection.band1]
+                    f2 = FREQ_BANDS[system_][selection.band2]
+                except KeyError:
+                    continue
+
+                df_sv = df_sv.select(
+                    [
+                        "epoch",
+                        "sv",
+                        selection.phase1,
+                        selection.phase2,
+                        selection.code1,
+                        selection.code2,
+                    ]
+                )
+                freq_meta_by_sv[sv] = (f1 / 1e6, f2 / 1e6)
+                results.append(
+                    _apply_linear_combinations(
+                        df_sv,
+                        selection=selection,
+                        freq1=pl.lit(f1),
+                        freq2=pl.lit(f2),
+                        combinations=combinations,
+                    )
+                )
+
+            if freq_meta_by_sv:
+                ctx.freq_meta[system_] = freq_meta_by_sv
+            continue
+
         selection = select_observable_pair(
             obs_data,
             system=system_,
@@ -75,10 +199,7 @@ def calculate_linear_combinations(
             selection.code2,
         }
 
-        df_sys = obs_data.filter(
-            (pl.col("sv").str.starts_with(system_))
-            & (pl.col("observable").is_in(required_cols))
-        )
+        df_sys = df_sys.filter(pl.col("observable").is_in(required_cols))
         if df_sys.is_empty():
             continue
 
@@ -122,47 +243,15 @@ def calculate_linear_combinations(
             freq1, freq2 = pl.lit(f1), pl.lit(f2)
             df_step = df_pivot
 
-        if "gflc_phase" in combinations:
-            df_step = df_step.with_columns(
-                _calculate_gflc_phase(
-                    pl.col(selection.phase1), pl.col(selection.phase2), freq1, freq2
-                ).alias("gflc_phase")
+        results.append(
+            _apply_linear_combinations(
+                df_step,
+                selection=selection,
+                freq1=freq1,
+                freq2=freq2,
+                combinations=combinations,
             )
-        if "gflc_code" in combinations:
-            df_step = df_step.with_columns(
-                _calculate_gflc_code(
-                    pl.col(selection.code1), pl.col(selection.code2), freq1, freq2
-                ).alias("gflc_code")
-            )
-        if "mw" in combinations:
-            df_step = df_step.with_columns(
-                _calculate_melbourne_wubbena(
-                    pl.col(selection.phase1),
-                    pl.col(selection.phase2),
-                    pl.col(selection.code1),
-                    pl.col(selection.code2),
-                    freq1,
-                    freq2,
-                ).alias("mw")
-            )
-        if "iflc_phase" in combinations:
-            df_step = df_step.with_columns(
-                _calculate_iflc_phase(
-                    pl.col(selection.phase1), pl.col(selection.phase2), freq1, freq2
-                ).alias("iflc_phase")
-            )
-        if "iflc_code" in combinations:
-            df_step = df_step.with_columns(
-                _calculate_iflc_code(
-                    pl.col(selection.code1), pl.col(selection.code2), freq1, freq2
-                ).alias("iflc_code")
-            )
-
-        drop_cols = list(required_cols)
-        if "_k" in df_step.columns:
-            drop_cols.append("_k")
-
-        results.append(df_step.drop(drop_cols))
+        )
 
     if not results:
         return pl.DataFrame()

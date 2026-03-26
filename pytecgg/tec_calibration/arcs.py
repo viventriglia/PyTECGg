@@ -243,10 +243,17 @@ def extract_arcs(
     # Iterate through systems defined in the context to handle constellation-specific noise/frequencies
     for sys_ in ctx.systems:
         f1, f2 = None, None
+        satellite_freq = None
         if sys_ in ctx.freq_meta:
             meta = ctx.freq_meta[sys_]
             if sys_ != "R":
-                f1, f2 = meta[0] * 1e6, meta[1] * 1e6
+                if isinstance(meta, dict):
+                    satellite_freq = {
+                        sv: (freq1 * 1e6, freq2 * 1e6)
+                        for sv, (freq1, freq2) in meta.items()
+                    }
+                else:
+                    f1, f2 = meta[0] * 1e6, meta[1] * 1e6
 
         # Detect CS and LoL for this specific system block
         df_sys = df.filter(pl.col("sv").str.starts_with(sys_))
@@ -261,6 +268,7 @@ def extract_arcs(
             threshold_std=threshold_std,
             max_gap=max_gap,
             glonass_freq=ctx.glonass_channels,
+            satellite_freq=satellite_freq,
             f1=f1,
             f2=f2,
         )
