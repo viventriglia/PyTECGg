@@ -4,7 +4,7 @@ import polars as pl
 
 from pytecgg.context import GNSSContext, SUPPORTED_SYSTEMS
 
-from .constants import FREQ_BANDS
+from .constants import FREQ_BANDS, BEIDOU_FREQ_BANDS_LEGACY, BEIDOU_FREQ_BANDS_MODERN
 from .gflc import _calculate_gflc_code, _calculate_gflc_phase
 from .iflc import _calculate_iflc_code, _calculate_iflc_phase
 from .mw import _calculate_melbourne_wubbena
@@ -16,6 +16,17 @@ from .observables import (
 )
 
 PER_SATELLITE_SELECTION_SYSTEMS = {"C"}
+
+
+def _beidou_freq_bands(rinex_version: str) -> dict[str, float]:
+    """Return the correct BeiDou frequency mapping for the given RINEX version."""
+    try:
+        minor = int(str(rinex_version).split(".")[1])
+    except (IndexError, ValueError):
+        minor = 99
+    if minor <= 2:
+        return BEIDOU_FREQ_BANDS_LEGACY
+    return BEIDOU_FREQ_BANDS_MODERN
 
 
 def _apply_linear_combinations(
@@ -152,8 +163,9 @@ def calculate_linear_combinations(
                     continue
 
                 try:
-                    f1 = FREQ_BANDS[system_][selection.band1]
-                    f2 = FREQ_BANDS[system_][selection.band2]
+                    beidou_bands = _beidou_freq_bands(ctx.rinex_version)
+                    f1 = beidou_bands[selection.band1]
+                    f2 = beidou_bands[selection.band2]
                 except KeyError:
                     continue
 
