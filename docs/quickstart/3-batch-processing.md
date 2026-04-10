@@ -65,7 +65,11 @@ ephem_dict = prepare_ephemeris(full_nav, ctx)
 df_coords = satellite_coordinates(all_obs["sv"], all_obs["epoch"], ephem_dict)
 
 # Extract arcs and compute satellites' geometry
-df_lc = calculate_linear_combinations(all_obs, ctx)
+df_lc = calculate_linear_combinations(
+    all_obs,
+    ctx,
+    selection_mode="availability",
+)
 df_arcs = extract_arcs(df_lc, ctx, min_arc_length=120).join(
     df_coords, on=["sv", "epoch"], how="left"
 )

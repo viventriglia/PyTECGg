@@ -250,6 +250,29 @@ GNSS_CONSTANTS: dict[str, GNSSConstants] = {
     ),
 }
 
+# Fields strictly required for Keplerian position computation.
+# Used in prepare_ephemeris to validate ephemeris rows instead of the full
+# EPHEMERIS_FIELDS lists, which also contain clock/bias fields that are
+# optional for position calculation and may be legitimately absent.
+KEPLERIAN_POSITION_FIELDS: list[str] = [
+    "toe",
+    "sqrta",
+    "deltaN",
+    "m0",
+    "e",
+    "omega",
+    "cuc",
+    "cus",
+    "crc",
+    "crs",
+    "cic",
+    "cis",
+    "i0",
+    "idot",
+    "omega0",
+    "omegaDot",
+]
+
 GPS_EPOCH = datetime(1980, 1, 6, tzinfo=timezone.utc)
 
 TOL_KEPLER: float = 0.001

@@ -4,7 +4,7 @@ This stage transforms raw observations into high-quality, geometrically-referenc
 
 ## Ephemeris Preparation 📐
 
-The first step is filtering global navigation messages and preparing ephemerides. Beyond preparing data for orbital propagation, this function enriches the `GNSSContext` with GLONASS `frequency_channels` (if `R` is among the requested constellations).
+The first step is filtering global navigation messages and preparing ephemerides. Beyond preparing data for orbital propagation, this function enriches the `GNSSContext` with GLONASS `glonass_channels` (if `R` is among the requested constellations).
 
 ```python
 from pytecgg.satellites import prepare_ephemeris
@@ -20,6 +20,9 @@ Starting from the basic observables and given a `GNSSContext`, `PyTECGg` can com
 - [Ionosphere-Free](https://gssc.esa.int/navipedia/index.php/Ionosphere-free_Combination_for_Dual_Frequency_Receivers) Linear Combination (IFLC), used to eliminate the ionospheric delay.
 - [Melbourne-Wübbena](https://gssc.esa.int/navipedia/index.php/Detector_based_in_code_and_carrier_phase_data:_The_Melbourne-W%C3%BCbbena_combination) (MW) combination, useful for cycle-slip detection and ambiguity resolution.
 
+!!! info "BeiDou Selection Is Now Per Satellite"
+    GPS, Galileo, and GLONASS still use one selected dual-frequency pair per constellation, but BeiDou is handled satellite by satellite. This lets mixed BDS-2/BDS-3 observation files keep the best valid pair for each `Cxx` satellite instead of forcing one pair across the whole constellation.
+
 ```python
 from pytecgg.linear_combinations import calculate_linear_combinations
 from pytecgg.tec_calibration import extract_arcs
@@ -28,7 +31,9 @@ from pytecgg.tec_calibration import extract_arcs
 df_lc = calculate_linear_combinations(
     df_obs,
     ctx=ctx,
-    combinations=["gflc_phase", "gflc_code", "mw"]
+    combinations=["gflc_phase", "gflc_code", "mw"],
+    selection_mode="quality",
+    band_overrides={"G": ("L1", "L5")},
 )
 
 # Identify continuous arcs, detect cycle slips
@@ -44,11 +49,13 @@ df_arcs = extract_arcs(
 
 Processing parameters and options:
 
+- `selection_mode`: ranking policy for automatic dual-frequency selection. Use `quality` to prefer higher-quality band pairs when coverage is comparable, `availability` to maximise complete observations, or `legacy` to keep legacy-style priorities. For BeiDou, this policy is applied per satellite rather than once per constellation.
+- `band_overrides`: optional per-system override for the selected band pair, for example `{"G": ("L1", "L5")}` or `{"BEIDOU": ("L1", "L7")}`. For BeiDou, the override is still evaluated per satellite, so satellites without that pair are skipped.
 - `combinations`: defines which signals to compute. Options include GFLC (`gflc_phase`, `gflc_code`), IFLC (`iflc_phase`, `iflc_code`), and MW (`mw`).
 - `extract_arcs`: outputs a Polars `DataFrame` containing unique arc identifiers (`id_arc_valid`) and arc-levelled GFLC values, essential for accurate bias estimation.
 - `threshold_abs` & `threshold_std`: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.
 - `threshold_jump`: tolerance for detecting and correcting residual jumps within an arc.
-- `max_gap`: an be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared
+- `max_gap`: can be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared.
 
 
 ## Orbital Propagation 🌍
@@ -58,7 +65,7 @@ To locate the ionospheric samples, we must first compute the satellite positions
 ```python
 from pytecgg.satellites import satellite_coordinates
 
-# Compute satellitess ECEF coordinates
+# Compute satellites' ECEF coordinates
 df_coords = satellite_coordinates(
     sv_ids=df_arcs["sv"],
     epochs=df_arcs["epoch"],
@@ -81,7 +88,7 @@ from pytecgg.satellites import calculate_ipp
 df_final = calculate_ipp(df_geom, ctx=ctx, min_elevation=20)
 ```
 
-This function appends geographic coordinates (`lat_ipp`, `lon_ipp`) and the mapping function values to the Polars `DataFrame`. The `min_elevation` argument sets a cut-off angle (in degrees) to filter satellites elevation.
+This function appends geographic coordinates (`lat_ipp`, `lon_ipp`) and the mapping function values to the Polars `DataFrame`. The `min_elevation` argument sets a cut-off angle (in degrees) to filter satellite elevation.
 
 !!! info "Elevation Masking"
     Filtering out elevations below 20° is highly recommended to feed cleaner data to the calibration model, as low-elevation signals are more susceptible to multipath and noise.

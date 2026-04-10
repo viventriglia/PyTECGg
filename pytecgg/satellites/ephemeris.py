@@ -3,7 +3,7 @@ from typing import Any
 
 import polars as pl
 
-from .constants import CONSTELLATION_PARAMS, GPS_EPOCH
+from .constants import CONSTELLATION_PARAMS, GPS_EPOCH, KEPLERIAN_POSITION_FIELDS
 from pytecgg.context import GNSSContext
 
 Ephem = dict[str, dict[str, Any] | list[dict[str, Any]]]
@@ -96,8 +96,11 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 ephem_dict[normalised_sat_id] = sat_ephems_list
 
             else:
-                # Keplerian models (GPS, Galileo, BeiDou) use a single representative message to minimise computational cost
-                valid_data = sat_data.drop_nulls(subset=params.fields)
+                # Keplerian models (GPS, Galileo, BeiDou) use a single representative message to minimise computational cost.
+                # Validate only on fields required for position computation, not all EPHEMERIS_FIELDS
+                # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
+                position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
+                valid_data = sat_data.drop_nulls(subset=position_fields)
                 if valid_data.is_empty():
                     continue
 

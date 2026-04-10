@@ -120,7 +120,7 @@ def _kepler_satellite_coordinates(
         Yk = xDash * np.sin(lamk) + yDash * np.cos(ik) * np.cos(lamk)
         Zk = yDash * np.sin(ik)
 
-        if gnss_system == "BeiDou":
+        if gnss_system == "BEIDOU":
             # GEO orbits correction
             if data["i0"] <= 20 * (np.pi / 180):
                 Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)

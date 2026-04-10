@@ -186,8 +186,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           tag_name: ${{ github.ref }}
-          generate_release_notes: true
+          generate_release_notes: false
           draft: false
           prerelease: false

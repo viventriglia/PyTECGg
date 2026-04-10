@@ -52,7 +52,7 @@ Context parameters are:
 Initialising this object is mandatory: it serves as the required argument for all subsequent processing steps, including cycle-slip detection, IPP calculation, and bias estimation.
 
 !!! info "Internal State Management"
-    The `GNSSContext` also maintains internal attributes like `glonass_channels` and `freq_meta`: these are automatically populated during the ephemeris and signal processing stages.
+    The `GNSSContext` also maintains internal attributes like `glonass_channels` and `freq_meta`: these are automatically populated during the ephemeris and signal processing stages. For GPS and Galileo, `freq_meta` is typically a single frequency pair per constellation; for GLONASS and BeiDou it may store per-satellite frequency metadata used downstream during TEC arc extraction and levelling.
 
 ## RINEX utilities 🔧
 
