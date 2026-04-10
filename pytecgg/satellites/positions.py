@@ -13,6 +13,27 @@ from pytecgg.satellites.state_vector.coordinates import (
 PREFIX_MAP = {v: k for k, v in SUPPORTED_SYSTEMS.items()}
 
 
+def _infer_schema_overrides(records: list[dict[str, Any]]) -> dict[str, pl.DataType]:
+    """Infer stable schema overrides for mixed GLONASS ephemeris records."""
+    overrides: dict[str, pl.DataType] = {}
+
+    if not records:
+        return overrides
+
+    for key in records[0]:
+        sample = next((record.get(key) for record in records if record.get(key) is not None), None)
+        if isinstance(sample, str):
+            overrides[key] = pl.String
+        elif isinstance(sample, bool):
+            overrides[key] = pl.Boolean
+        elif isinstance(sample, (int, np.integer)):
+            overrides[key] = pl.Int64
+        elif isinstance(sample, (float, np.floating)):
+            overrides[key] = pl.Float64
+
+    return overrides
+
+
 def _emit_warnings(system: str, missing: set[str], failed: set[str]) -> None:
     """Helper function to emit warnings for missing or failed satellite coordinate calculations."""
 
@@ -210,7 +231,14 @@ def satellite_coordinates(
                         eph_list.append(record)
 
             df_obs = pl.DataFrame({"sv": sys_sv_ids, "epoch": sys_epochs}).sort("epoch")
-            df_eph = pl.DataFrame(eph_list).sort("datetime")
+            if eph_list:
+                df_eph = pl.DataFrame(
+                    eph_list,
+                    schema_overrides=_infer_schema_overrides(eph_list),
+                    infer_schema_length=len(eph_list),
+                ).sort("datetime")
+            else:
+                df_eph = pl.DataFrame(schema={"sv": pl.String, "datetime": pl.Datetime})
 
             with warnings.catch_warnings():
                 warnings.filterwarnings(

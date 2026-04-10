@@ -19,6 +19,7 @@ def detect_cs_lol(
     threshold_abs: float = 5.0,
     max_gap: timedelta = None,
     glonass_freq: Optional[dict[str, int]] = None,
+    satellite_freq: Optional[dict[str, tuple[float, float]]] = None,
     f1: Optional[float] = None,
     f2: Optional[float] = None,
 ) -> pl.DataFrame:
@@ -34,6 +35,8 @@ def detect_cs_lol(
         max_gap (timedelta): Maximum allowed time gap between observations before declaring
             LoL (default: inferred from df's temporal resolution)
         glonass_freq (dict[str, int], optional): Frequency mapping for GLONASS satellites
+        satellite_freq (dict[str, tuple[float, float]], optional): Per-satellite
+            frequency mapping for non-GLONASS systems, in Hz
         f1 (float or pl.Series, optional): Frequency of the first band (Hz)
         f2 (float or pl.Series, optional): Frequency of the second band (Hz)
 
@@ -59,6 +62,12 @@ def detect_cs_lol(
         ]
         if not valid_svs:
             return pl.DataFrame()
+    elif satellite_freq is not None:
+        valid_svs = [
+            sv for sv in df.get_column("sv").unique() if satellite_freq.get(sv) is not None
+        ]
+        if not valid_svs:
+            return pl.DataFrame()
     else:
         valid_svs = df.get_column("sv").unique()
 
@@ -74,7 +83,7 @@ def detect_cs_lol(
         "is_cycle_slip": pl.Boolean,
     }
 
-    if system in ["G", "E", "C"]:
+    if system in ["G", "E", "C"] and satellite_freq is None:
         if f1 is None or f2 is None:
             # Fallback to defaults from constants if frequencies are not provided
             band2, band1 = PHASE_FREQ_PRIORITY[system][0]
@@ -93,6 +102,12 @@ def detect_cs_lol(
             f1 = FREQ_BANDS["R"]["L1"](n)
             f2 = FREQ_BANDS["R"]["L2"](n)
             lambda_w = C / (f1 - f2)
+            sigma_0 = lambda_w / 2
+        elif satellite_freq is not None:
+            if sv not in satellite_freq:
+                continue
+            f1_sv, f2_sv = satellite_freq[sv]
+            lambda_w = C / (f1_sv - f2_sv)
             sigma_0 = lambda_w / 2
         else:
             sigma_0 = sigma_0_const
