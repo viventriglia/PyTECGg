@@ -299,8 +299,8 @@ def test_beidou_selection_is_per_satellite():
     assert not df_lc.is_empty()
     assert set(df_lc["sv"]) == {"C01", "C02"}
     assert ctx.freq_meta["C"] == {
-        "C01": (1176.45, 1561.098),
-        "C02": (1207.14, 1561.098),
+        "C01": (1176.45, 1575.42),
+        "C02": (1207.14, 1575.42),
     }
 
 
@@ -363,4 +363,4 @@ def test_beidou_band_override_is_applied_per_satellite():
 
     assert not df_lc.is_empty()
     assert set(df_lc["sv"]) == {"C02"}
-    assert ctx.freq_meta["C"] == {"C02": (1207.14, 1561.098)}
+    assert ctx.freq_meta["C"] == {"C02": (1207.14, 1575.42)}
