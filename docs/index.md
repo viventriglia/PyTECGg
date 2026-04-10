@@ -38,9 +38,9 @@ This package is designed for researchers and engineers who need speed and reliab
 - **RINEX ready**: supports versions 2, 3, and 4.
 - **Seamless decompression**: built-in support for Hatanaka-compressed files — no need to decompress your data manually.
 
-<!-- TODO -->
-<!-- !!! info "Citing `PyTECGg`"
-    If you use `PyTECGg` for your research, please cite ... -->
+!!! info "Citing `PyTECGg`"
+    If you use `PyTECGg` for your research, please cite
+    [*PyTECGg: Total Electron Content reconstruction with GNSS data*](https://dx.doi.org/10.2139/ssrn.6549526) (preprint) by V. Ventriglia, M. Guerra, D. Okoh, P. Vermicelli, L. Ciraolo, and C. Cesaroni.
 
 ## Get started
 
