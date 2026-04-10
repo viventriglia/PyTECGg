@@ -34,6 +34,7 @@ This package is designed for researchers and engineers who need speed and reliab
 - **Blazing fast**: powered by a [Rust](https://rust-lang.org/) core and [Polars](https://pola.rs/), it is much faster than existing pure-Python implementations when parsing large datasets.
 - **Open source**: read, access, and contribute to [all the code](https://github.com/viventriglia/PyTECGg).
 - **Modern GNSS support**: compatible with GPS, Galileo, BeiDou, GLONASS.
+- **Adaptive signal selection**: automatic dual-frequency ranking now supports per-satellite BeiDou selection and RINEX-aware BeiDou band/frequency mapping.
 - **RINEX ready**: supports versions 2, 3, and 4.
 - **Seamless decompression**: built-in support for Hatanaka-compressed files — no need to decompress your data manually.
 
