@@ -2,54 +2,54 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/contributing/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/installation/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/includes/abbreviations/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/quickstart/0-data-ingestion-setup/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/quickstart/1-preprocessing-geometry/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/quickstart/2-tec-calibration/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/quickstart/3-batch-processing/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/reference/context/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/reference/parsing/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/reference/satellites/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/reference/tec_calibration/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
     <url>
          <loc>https://viventriglia.github.io/PyTECGg/reference/utils/</loc>
-         <lastmod>2026-03-11</lastmod>
+         <lastmod>2026-04-10</lastmod>
     </url>
 </urlset>

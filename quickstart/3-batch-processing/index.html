@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1033,7 +1033,11 @@
 <span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span><span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">],</span> <span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">ephem_dict</span><span class="p">)</span>
 
 <span class="c1"># Extract arcs and compute satellites&#39; geometry</span>
-<span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span><span class="n">all_obs</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span>
+    <span class="n">all_obs</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">,</span>
+    <span class="n">selection_mode</span><span class="o">=</span><span class="s2">&quot;availability&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="n">df_arcs</span> <span class="o">=</span> <span class="n">extract_arcs</span><span class="p">(</span><span class="n">df_lc</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">min_arc_length</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
     <span class="n">df_coords</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">,</span> <span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span>
 <span class="p">)</span>

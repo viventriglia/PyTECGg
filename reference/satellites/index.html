@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -806,6 +806,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ephemeris-preparation-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ephemeris Preparation Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#api-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -970,6 +981,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ephemeris-preparation-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ephemeris Preparation Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#api-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1052,6 +1074,13 @@
 <li><strong>Keplerian</strong> model: used for GPS, Galileo, and BeiDou; it computes positions based on orbital elements valid for a few hours.</li>
 <li><strong>State-Vector</strong> model: used for GLONASS; it performs numerical integration (via a <a href="https://numba.pydata.org/">Numba</a>-accelerated ODE solver) of instantaneous position, velocity, and acceleration vectors.</li>
 </ol>
+<h2 id="ephemeris-preparation-notes">Ephemeris Preparation Notes<a class="headerlink" href="#ephemeris-preparation-notes" title="Permanent link">&para;</a></h2>
+<p><code>prepare_ephemeris</code> now validates navigation records according to the orbit model actually used downstream:</p>
+<ul>
+<li><strong>GPS, Galileo, BeiDou</strong>: the function keeps one representative broadcast message per satellite and checks only the orbital fields strictly required for Keplerian position propagation.</li>
+<li><strong>GLONASS</strong>: the full message history is retained because state-vector propagation needs the closest valid epoch and the FDMA channel.</li>
+</ul>
+<p>This means a navigation message is not discarded, as long as the orbital solution is still sufficient to compute satellite geometry.</p>
 <hr />
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
 

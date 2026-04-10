@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1025,7 +1025,7 @@
 <h1 id="preprocessing-geometry">Preprocessing &amp; Geometry 🛰️<a class="headerlink" href="#preprocessing-geometry" title="Permanent link">&para;</a></h1>
 <p>This stage transforms raw observations into high-quality, geometrically-referenced time series, determining exactly where the ionospheric observations took place.</p>
 <h2 id="ephemeris-preparation">Ephemeris Preparation 📐<a class="headerlink" href="#ephemeris-preparation" title="Permanent link">&para;</a></h2>
-<p>The first step is filtering global navigation messages and preparing ephemerides. Beyond preparing data for orbital propagation, this function enriches the <code>GNSSContext</code> with GLONASS <code>frequency_channels</code> (if <code>R</code> is among the requested constellations).</p>
+<p>The first step is filtering global navigation messages and preparing ephemerides. Beyond preparing data for orbital propagation, this function enriches the <code>GNSSContext</code> with GLONASS <code>glonass_channels</code> (if <code>R</code> is among the requested constellations).</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_ephemeris</span>
 
 <span class="n">ephem_dict</span> <span class="o">=</span> <span class="n">prepare_ephemeris</span><span class="p">(</span><span class="n">nav_dict</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">)</span>
@@ -1037,6 +1037,10 @@
 <li><a href="https://gssc.esa.int/navipedia/index.php/Ionosphere-free_Combination_for_Dual_Frequency_Receivers">Ionosphere-Free</a> Linear Combination (IFLC), used to eliminate the ionospheric delay.</li>
 <li><a href="https://gssc.esa.int/navipedia/index.php/Detector_based_in_code_and_carrier_phase_data:_The_Melbourne-W%C3%BCbbena_combination">Melbourne-Wübbena</a> (MW) combination, useful for cycle-slip detection and ambiguity resolution.</li>
 </ul>
+<div class="admonition info">
+<p class="admonition-title">BeiDou Selection Is Now Per Satellite</p>
+<p>GPS, Galileo, and GLONASS still use one selected dual-frequency pair per constellation, but BeiDou is handled satellite by satellite. This lets mixed BDS-2/BDS-3 observation files keep the best valid pair for each <code>Cxx</code> satellite instead of forcing one pair across the whole constellation.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.linear_combinations</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_linear_combinations</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.tec_calibration</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_arcs</span>
 
@@ -1044,7 +1048,9 @@
 <span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span>
     <span class="n">df_obs</span><span class="p">,</span>
     <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
-    <span class="n">combinations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gflc_phase&quot;</span><span class="p">,</span> <span class="s2">&quot;gflc_code&quot;</span><span class="p">,</span> <span class="s2">&quot;mw&quot;</span><span class="p">]</span>
+    <span class="n">combinations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gflc_phase&quot;</span><span class="p">,</span> <span class="s2">&quot;gflc_code&quot;</span><span class="p">,</span> <span class="s2">&quot;mw&quot;</span><span class="p">],</span>
+    <span class="n">selection_mode</span><span class="o">=</span><span class="s2">&quot;quality&quot;</span><span class="p">,</span>
+    <span class="n">band_overrides</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;L5&quot;</span><span class="p">)},</span>
 <span class="p">)</span>
 
 <span class="c1"># Identify continuous arcs, detect cycle slips</span>
@@ -1059,17 +1065,19 @@
 </code></pre></div>
 <p>Processing parameters and options:</p>
 <ul>
+<li><code>selection_mode</code>: ranking policy for automatic dual-frequency selection. Use <code>quality</code> to prefer higher-quality band pairs when coverage is comparable, <code>availability</code> to maximise complete observations, or <code>legacy</code> to keep legacy-style priorities. For BeiDou, this policy is applied per satellite rather than once per constellation.</li>
+<li><code>band_overrides</code>: optional per-system override for the selected band pair, for example <code>{"G": ("L1", "L5")}</code> or <code>{"BEIDOU": ("L1", "L7")}</code>. For BeiDou, the override is still evaluated per satellite, so satellites without that pair are skipped.</li>
 <li><code>combinations</code>: defines which signals to compute. Options include <abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr> (<code>gflc_phase</code>, <code>gflc_code</code>), IFLC (<code>iflc_phase</code>, <code>iflc_code</code>), and MW (<code>mw</code>).</li>
 <li><code>extract_arcs</code>: outputs a Polars <code>DataFrame</code> containing unique arc identifiers (<code>id_arc_valid</code>) and arc-levelled <abbr title="Geometry-Free Linear Combination: a signal combination that cancels frequency-independent effects like geometry.">GFLC</abbr> values, essential for accurate bias estimation.</li>
 <li><code>threshold_abs</code> &amp; <code>threshold_std</code>: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.</li>
 <li><code>threshold_jump</code>: tolerance for detecting and correcting residual jumps within an arc.</li>
-<li><code>max_gap</code>: an be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared</li>
+<li><code>max_gap</code>: can be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared.</li>
 </ul>
 <h2 id="orbital-propagation">Orbital Propagation 🌍<a class="headerlink" href="#orbital-propagation" title="Permanent link">&para;</a></h2>
 <p>To locate the ionospheric samples, we must first compute the satellite positions in the <abbr title="Earth-Centered, Earth-Fixed: a Cartesian coordinate system where the origin is at the Earth's center of mass.">ECEF</abbr> frame.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.satellites</span><span class="w"> </span><span class="kn">import</span> <span class="n">satellite_coordinates</span>
 
-<span class="c1"># Compute satellitess ECEF coordinates</span>
+<span class="c1"># Compute satellites&#39; ECEF coordinates</span>
 <span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span>
     <span class="n">sv_ids</span><span class="o">=</span><span class="n">df_arcs</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">],</span>
     <span class="n">epochs</span><span class="o">=</span><span class="n">df_arcs</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span>
@@ -1086,7 +1094,7 @@
 
 <span class="n">df_final</span> <span class="o">=</span> <span class="n">calculate_ipp</span><span class="p">(</span><span class="n">df_geom</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span> <span class="n">min_elevation</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 </code></pre></div>
-<p>This function appends geographic coordinates (<code>lat_ipp</code>, <code>lon_ipp</code>) and the mapping function values to the Polars <code>DataFrame</code>. The <code>min_elevation</code> argument sets a cut-off angle (in degrees) to filter satellites elevation.</p>
+<p>This function appends geographic coordinates (<code>lat_ipp</code>, <code>lon_ipp</code>) and the mapping function values to the Polars <code>DataFrame</code>. The <code>min_elevation</code> argument sets a cut-off angle (in degrees) to filter satellite elevation.</p>
 <div class="admonition info">
 <p class="admonition-title">Elevation Masking</p>
 <p>Filtering out elevations below 20° is highly recommended to feed cleaner data to the calibration model, as low-elevation signals are more susceptible to multipath and noise.</p>

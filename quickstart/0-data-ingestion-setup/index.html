@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -1079,7 +1079,7 @@
 <p>Initialising this object is mandatory: it serves as the required argument for all subsequent processing steps, including cycle-slip detection, <abbr title="Ionospheric Pierce Point: the intersection between the signal path and the ionospheric thin-shell.">IPP</abbr> calculation, and bias estimation.</p>
 <div class="admonition info">
 <p class="admonition-title">Internal State Management</p>
-<p>The <code>GNSSContext</code> also maintains internal attributes like <code>glonass_channels</code> and <code>freq_meta</code>: these are automatically populated during the ephemeris and signal processing stages.</p>
+<p>The <code>GNSSContext</code> also maintains internal attributes like <code>glonass_channels</code> and <code>freq_meta</code>: these are automatically populated during the ephemeris and signal processing stages. For GPS and Galileo, <code>freq_meta</code> is typically a single frequency pair per constellation; for GLONASS and BeiDou it may store per-satellite frequency metadata used downstream during TEC arc extraction and levelling.</p>
 </div>
 <h2 id="rinex-utilities">RINEX utilities 🔧<a class="headerlink" href="#rinex-utilities" title="Permanent link">&para;</a></h2>
 <p><code>PyTECGg</code> also provides utility functions to perform quick health checks on the parsed datasets and automate data retrieval.</p>
