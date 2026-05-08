@@ -8,7 +8,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 
-RUN uv pip install --system --no-cache-dir "pytecgg==1.1.0" "matplotlib>=3.10,<4" "plotly>=6.2,<6.3"
+RUN uv pip install --system --no-cache-dir "pytecgg==1.3.0" "matplotlib>=3.10,<4" "plotly>=6.2,<6.3"
 
 COPY main.py .
 COPY utils.py .

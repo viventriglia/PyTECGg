@@ -6,6 +6,7 @@ import pytest
 
 from pytecgg.utils.download_rinex import (
     download_obs_ring,
+    download_obs_euref,
     download_nav_bkg,
     _download_file,
 )
@@ -33,6 +34,59 @@ def test_obs_ring_url_construction():
         assert "2023001" in url
         assert path.name == "GROT00ITA_R_20230010000_01D_30S_MO.crx.gz"
         assert path.parent.name == "GROT"
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_obs_euref_url_construction_from_short_code(
+    mock_get, mock_batch_download, tmp_path
+):
+    """
+    Verify that a 4-character code is resolved against EUREF filenames and that
+    the correct download task is constructed.
+    """
+    mock_response = MagicMock()
+    mock_response.text = '<a href="BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz">link</a>'
+    mock_get.return_value = mock_response
+
+    download_obs_euref("BRUX", 2025, [1], tmp_path)
+
+    assert mock_batch_download.called
+    tasks = mock_batch_download.call_args[0][0]
+    url, path = tasks[0]
+
+    assert url == (
+        "https://epncb.oma.be/pub/RINEX/2025/001/"
+        "BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz"
+    )
+    assert path.name == "BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz"
+    assert path.parent.name == "BRUX"
+
+
+@patch("pytecgg.utils.download_rinex._batch_download")
+@patch("pytecgg.utils.download_rinex.requests.Session.get")
+def test_obs_euref_prefers_standard_r_filename(
+    mock_get, mock_batch_download, tmp_path
+):
+    """
+    Verify that the standard `_R_` filename is preferred when multiple EUREF
+    filenames match the same station/day.
+    """
+    mock_response = MagicMock()
+    mock_response.text = """
+        <a href="BRUX00BEL_S_20250010000_01D_30S_MO.crx.gz">link</a>
+        <a href="BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz">link</a>
+    """
+    mock_get.return_value = mock_response
+
+    download_obs_euref("BRUX00BEL", 2025, [1], tmp_path)
+
+    tasks = mock_batch_download.call_args[0][0]
+    url, path = tasks[0]
+
+    assert "BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz" in url
+    assert path.name == "BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz"
+    assert path.parent.name == "BRUX00BEL"
 
 
 def test_download_file_cleanup_on_failure(tmp_path):
