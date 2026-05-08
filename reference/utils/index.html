@@ -871,6 +871,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pytecgg.utils.download_obs_euref" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        download_obs_euref
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pytecgg.utils.download_obs_ring" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -957,6 +968,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pytecgg.utils.download_obs_euref" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        download_obs_euref
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pytecgg.utils.download_obs_ring" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1002,6 +1024,7 @@
 <p>The <code>utils</code> module provides helper functions to inspect the parsed datasets, and to download RINEX files. About the latter, to perform TEC analysis you need both Observation (from the station) and Navigation (global ephemerides) files: <code>PyTECGg</code> simplifies this with dedicated downloaders:</p>
 <ul>
 <li><a href="https://webring.gm.ingv.it/"><strong>INGV RING Network</strong></a>: targeted at the Italian GNSS network, downloading high-quality 30s observation files.</li>
+<li><a href="https://epncb.oma.be/"><strong>EUREF EPN</strong></a>: targeted at the European Permanent Network, downloading daily observation files from the EPN archive.</li>
 <li><a href="https://igs.bkg.bund.de/"><strong>BKG IGS Global</strong></a>: Downloads aggregated multi-constellation navigation files (BRDC), essential for orbit propagation.</li>
 </ul>
 <hr />
@@ -1123,6 +1146,112 @@ by <code>read_rinex_nav</code>.</p>
       </tbody>
     </table>
 
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="pytecgg.utils.download_obs_euref" class="doc doc-heading">
+            <code class=" language-python"><span class="n">download_obs_euref</span><span class="p">(</span><span class="n">station_code</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">doys</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span></code>
+
+<a href="#pytecgg.utils.download_obs_euref" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Download RINEX observation files (Hatanaka crx.gz) from the EUREF EPN server.</p>
+<p>EUREF station long names cannot always be inferred from a 4-character code
+alone. If a short code is provided, the function inspects the remote daily
+directory and selects the matching EPN long-name filename. Downloaded files
+are organized into station-specific subdirectories.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>station_code</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The station identifier (4 or 9 characters). Example: 'BRUX' or 'BRUX00BEL'.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>year</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The observation year (e.g., 2023).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>doys</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of Days Of Year (DOY), e.g., [1, 2, 3].</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>output_path</code>
+            </td>
+            <td>
+                  <code><span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The root directory where the files will be saved.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="note" open>
+  <summary>Notes</summary>
+  <p>Data Source: <a href="https://epncb.oma.be/pub/RINEX">https://epncb.oma.be/pub/RINEX</a></p>
+</details>
 
     </div>
 

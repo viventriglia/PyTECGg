@@ -1125,14 +1125,14 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
 </div>
 </div>
 <h3 id="download-rinex-files">Download RINEX files<a class="headerlink" href="#download-rinex-files" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">INGV RING (ObS)</label><label for="__tabbed_2_2">BKG IGS (NAV)</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">INGV RING (OBS)</label><label for="__tabbed_2_2">EUREF EPN (OBS)</label><label for="__tabbed_2_3">BKG IGS (NAV)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>The <code>download_obs_ring</code> function targets the <a href="https://webring.gm.ingv.it/">INGV RING</a> network. This network manages continuous GNSS stations across Italy and archives GNSS data from thousands of stations along the Eurasia-Africa plate boundary. The function handles station naming conventions: if a 4-character code like <code>GRO2</code> is provided, it is converted to the long-name format (e.g., <code>GRO200ITA</code>).</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_obs_ring</span>
 
 <span class="n">download_obs_ring</span><span class="p">(</span>
-    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;GRO200ITA&quot;</span><span class="p">,</span>
+    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;GRO2&quot;</span><span class="p">,</span>
     <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
     <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
     <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
@@ -1144,6 +1144,25 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
 <span class="w">    </span>├──<span class="w"> </span>GRO200ITA_R_20250010000_01D_30S_MO.crx.gz
 <span class="w">    </span>├──<span class="w"> </span>GRO200ITA_R_20250550000_01D_30S_MO.crx.gz
 <span class="w">    </span>└──<span class="w"> </span>GRO200ITA_R_20252520000_01D_30S_MO.crx.gz
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>The <code>download_obs_euref</code> function targets the <a href="https://epncb.oma.be/">EUREF Permanent GNSS Network</a>. EPN stores daily observation data in RINEX 3 long-name format. If you provide a 4-character code like <code>BRUX</code>, the function scans the remote daily directory and resolves the matching long-name station file automatically.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_obs_euref</span>
+
+<span class="n">download_obs_euref</span><span class="p">(</span>
+    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;BRUX&quot;</span><span class="p">,</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
+    <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The function creates a subdirectory named after the <code>station_code</code> under the provided <code>output_path</code>. The above example will produce a structure like:</p>
+<div class="highlight"><pre><span></span><code>data/
+└──<span class="w"> </span>BRUX/
+<span class="w">    </span>├──<span class="w"> </span>BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz
+<span class="w">    </span>├──<span class="w"> </span>BRUX00BEL_R_20250550000_01D_30S_MO.crx.gz
+<span class="w">    </span>└──<span class="w"> </span>BRUX00BEL_R_20252520000_01D_30S_MO.crx.gz
 </code></pre></div>
 </div>
 <div class="tabbed-block">
