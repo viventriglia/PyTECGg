@@ -100,14 +100,14 @@ Once data is loaded, you can use `summarise_rinex_data` to verify signal availab
 
 ### Download RINEX files
 
-=== "INGV RING (ObS)"
+=== "INGV RING (OBS)"
     The `download_obs_ring` function targets the [INGV RING](https://webring.gm.ingv.it/) network. This network manages continuous GNSS stations across Italy and archives GNSS data from thousands of stations along the Eurasia-Africa plate boundary. The function handles station naming conventions: if a 4-character code like `GRO2` is provided, it is converted to the long-name format (e.g., `GRO200ITA`).
     
     ```python
     from pytecgg.utils import download_obs_ring
 
     download_obs_ring(
-        station_code="GRO200ITA",
+        station_code="GRO2",
         year=2025,
         doys=[1, 55, 252],
         output_path=Path("./data")
@@ -122,6 +122,29 @@ Once data is loaded, you can use `summarise_rinex_data` to verify signal availab
         ├── GRO200ITA_R_20250010000_01D_30S_MO.crx.gz
         ├── GRO200ITA_R_20250550000_01D_30S_MO.crx.gz
         └── GRO200ITA_R_20252520000_01D_30S_MO.crx.gz
+    ```
+=== "EUREF EPN (OBS)"
+    The `download_obs_euref` function targets the [EUREF Permanent GNSS Network](https://epncb.oma.be/). EPN stores daily observation data in RINEX 3 long-name format. If you provide a 4-character code like `BRUX`, the function scans the remote daily directory and resolves the matching long-name station file automatically.
+
+    ```python
+    from pytecgg.utils import download_obs_euref
+
+    download_obs_euref(
+        station_code="BRUX",
+        year=2025,
+        doys=[1, 55, 252],
+        output_path=Path("./data")
+    )
+    ```
+
+    The function creates a subdirectory named after the `station_code` under the provided `output_path`. The above example will produce a structure like:
+
+    ```bash
+    data/
+    └── BRUX/
+        ├── BRUX00BEL_R_20250010000_01D_30S_MO.crx.gz
+        ├── BRUX00BEL_R_20250550000_01D_30S_MO.crx.gz
+        └── BRUX00BEL_R_20252520000_01D_30S_MO.crx.gz
     ```
 === "BKG IGS (NAV)"
     Multi-constellation navigation messages, providing aggregated data from the global [IGS network](https://network.igs.org/), can be downloaded from the [BKG](https://igs.bkg.bund.de/) GNSS Data Center.
