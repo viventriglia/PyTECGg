@@ -162,6 +162,43 @@ def test_calculate_lc_with_real_file(parsed_rinex_obs_data, real_context):
     assert "G" in real_context.freq_meta
 
 
+def test_gflc_code_obs_used_column_present_when_gflc_code_requested():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 4,
+            "sv": ["G01"] * 4,
+            "observable": ["L1C", "L2W", "C1C", "C2W"],
+            "value": [1000.0, 800.0, 20_000_000.0, 20_000_010.0],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df, ctx, combinations=["gflc_code"]
+    )
+
+    assert "gflc_code_obs_used" in df_lc.columns
+    assert df_lc["gflc_code_obs_used"].to_list() == ["C2W,C1C"]
+
+
+def test_gflc_code_obs_used_column_absent_when_gflc_code_not_requested():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 4,
+            "sv": ["G01"] * 4,
+            "observable": ["L1C", "L2W", "C1C", "C2W"],
+            "value": [1000.0, 800.0, 20_000_000.0, 20_000_010.0],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df, ctx, combinations=["gflc_phase"]
+    )
+
+    assert "gflc_code_obs_used" not in df_lc.columns
+
+
 def test_selection_mode_quality_prefers_l1_l5_when_available():
     ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
     obs_df = pl.DataFrame(

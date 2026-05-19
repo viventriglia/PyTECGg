@@ -89,7 +89,7 @@ def _remove_cs_jumps(df: pl.DataFrame, threshold_jump: float = 10.0) -> pl.DataF
     pl.DataFrame
         DataFrame with fixed columns (suffix '_fix') added
     """
-    predefined_lin_combs = ["gflc_phase", "gflc_code", "mw", "iflc_phase", "iflc_code"]
+    predefined_lin_combs = ["gflc_phase", "mw", "iflc_phase"]
     lin_combs = [lc_ for lc_ in predefined_lin_combs if lc_ in df.columns]
 
     if len(lin_combs) == 0:
@@ -161,21 +161,21 @@ def _level_phase_to_code(df: pl.DataFrame) -> pl.DataFrame:
         Input DataFrame containing GNSS observations with:
         - id_arc_valid: Valid arc identifiers
         - gflc_phase_fix: Fixed phase linear combination
-        - gflc_code_fix: Fixed code linear combination
+        - gflc_code: Code linear combination
 
     Returns
     -------
     pl.DataFrame
         DataFrame with leveled phase column added
     """
-    if "gflc_phase_fix" not in df.columns or "gflc_code_fix" not in df.columns:
+    if "gflc_phase_fix" not in df.columns or "gflc_code" not in df.columns:
         warn(
-            "Both 'gflc_phase_fix' and 'gflc_code_fix' must be present in DataFrame columns to level phase to code."
+            "Both 'gflc_phase_fix' and 'gflc_code' must be present in DataFrame columns to level phase to code."
         )
         return df
 
     df_ = df.with_columns(
-        (pl.col("gflc_phase_fix") - pl.col("gflc_code_fix")).alias("_phase_code_diff")
+        (pl.col("gflc_phase_fix") - pl.col("gflc_code")).alias("_phase_code_diff")
     )
 
     # Calculate the mean of (phase - code) over each valid arc

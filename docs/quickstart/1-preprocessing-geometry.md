@@ -51,7 +51,7 @@ Processing parameters and options:
 
 - `selection_mode`: ranking policy for automatic dual-frequency selection. Use `quality` to prefer higher-quality band pairs when coverage is comparable, `availability` to maximise complete observations, or `legacy` to keep legacy-style priorities. For BeiDou, this policy is applied per satellite rather than once per constellation.
 - `band_overrides`: optional per-system override for the selected band pair, for example `{"G": ("L1", "L5")}` or `{"BEIDOU": ("L1", "L7")}`. For BeiDou, the override is still evaluated per satellite, so satellites without that pair are skipped.
-- `combinations`: defines which signals to compute. Options include GFLC (`gflc_phase`, `gflc_code`), IFLC (`iflc_phase`, `iflc_code`), and MW (`mw`).
+- `combinations`: defines which signals to compute. Options include GFLC (`gflc_phase`, `gflc_code`), IFLC (`iflc_phase`, `iflc_code`), and MW (`mw`). When `gflc_code` is requested, the output also contains a `gflc_code_obs_used` column with the two code observable names (e.g. `"C1C,C2W"`) used to compute it; for BeiDou the value can vary per satellite.
 - `extract_arcs`: outputs a Polars `DataFrame` containing unique arc identifiers (`id_arc_valid`) and arc-levelled GFLC values, essential for accurate bias estimation.
 - `threshold_abs` & `threshold_std`: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.
 - `threshold_jump`: tolerance for detecting and correcting residual jumps within an arc.

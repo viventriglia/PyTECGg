@@ -48,7 +48,8 @@ def _apply_linear_combinations(
         df_step = df_step.with_columns(
             _calculate_gflc_code(
                 pl.col(selection.code1), pl.col(selection.code2), freq1, freq2
-            ).alias("gflc_code")
+            ).alias("gflc_code"),
+            pl.lit(f"{selection.code1},{selection.code2}").alias("gflc_code_obs_used"),
         )
     if "mw" in combinations:
         df_step = df_step.with_columns(
@@ -117,7 +118,13 @@ def calculate_linear_combinations(
     Returns
     -------
     pl.DataFrame
-        DataFrame with the requested linear combinations.
+        DataFrame with the requested linear combinations. When ``"gflc_code"``
+        is requested, an additional ``gflc_code_obs_used`` string column is
+        included, containing the two code observable names used to compute
+        ``gflc_code`` joined with a comma (for example ``"C1C,C2W"``). For
+        BeiDou this value can vary per satellite because band selection is
+        applied per ``sv``; for the other systems it is constant within the
+        constellation block.
 
     Notes
     -----
