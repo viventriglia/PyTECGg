@@ -230,7 +230,7 @@ def satellite_coordinates(
                         record["sv"] = sv_
                         eph_list.append(record)
 
-            df_obs = pl.DataFrame({"sv": sys_sv_ids, "epoch": sys_epochs}).sort("epoch")
+            df_obs = pl.DataFrame({"sv": sys_sv_ids, "epoch": sys_epochs}).sort(["sv", "epoch"])
             if eph_list:
                 df_eph = pl.DataFrame(
                     eph_list,
