@@ -10,13 +10,15 @@ def _polynomial_expansion(
     modip_rec: np.ndarray,
     lon_ipp: np.ndarray,
     lon_rec: np.ndarray,
+    delta_lt: np.ndarray,
     max_degree: int,
 ) -> np.ndarray:
     """
     Compute polynomial expansion terms for TEC modeling.
 
     The expansion combines differences in longitude and modified dip latitude (MoDip)
-    between ionospheric pierce point (IPP) and receiver location.
+    between ionospheric pierce point (IPP) and receiver location, plus a linear
+    local-time term that lets vTEC vary across the batch's time window.
 
     Parameters
     ----------
@@ -28,20 +30,29 @@ def _polynomial_expansion(
         Longitudes of IPP [degrees]
     lon_rec : np.ndarray
         Longitudes of the receiver position [degrees]
+    delta_lt : np.ndarray
+        Local-time offset at IPP relative to the batch center [hours].
+        Defined as (epoch - batch_center)_hours + (lon_ipp - lon_rec) / 15.
+        Carries the diurnal gradient information: rows at the same epoch but
+        different IPP longitudes get different values, and rows at the same
+        IPP but different epochs also get different values.
     max_degree : int
         Maximum polynomial degree for MoDip terms
 
     Returns
     -------
     np.ndarray
-        Matrix of polynomial expansion terms with shape (n_points, 2 + max_degree)
+        Matrix of polynomial expansion terms with shape (n_points, 3 + max_degree).
+        Columns: [const, Δlon, Δmodip, Δmodip², ..., Δmodip^max_degree, Δt_LT].
+        The local-time column is un-damped so it stays active for low-elevation
+        IPPs (high |Δmodip|) where the diurnal gradient matters most.
     """
     delta_lon = lon_ipp - lon_rec
     delta_modip = modip_ipp - modip_rec
     const_norm = 1.0 / (1.0 + np.abs(delta_modip) ** (max_degree + 1))
 
     n_points = modip_ipp.shape[0]
-    n_terms = 2 + max_degree
+    n_terms = 3 + max_degree
     pterms_matrix = np.zeros((n_points, n_terms))
 
     # Constant and longitude terms (2 terms)
@@ -50,6 +61,8 @@ def _polynomial_expansion(
     # MoDip terms (max_degree terms)
     for j in range(1, max_degree + 1):
         pterms_matrix[:, 1 + j] = (delta_modip**j) * const_norm
+    # Local-time term (un-damped)
+    pterms_matrix[:, 2 + max_degree] = delta_lt
 
     return pterms_matrix
 

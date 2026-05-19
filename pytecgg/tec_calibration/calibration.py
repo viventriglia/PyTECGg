@@ -46,7 +46,7 @@ def _gg_calibration(
     """
 
     df_clean = df_clean.sort(by="epoch")
-    n_coeffs = max_degree + 2
+    n_coeffs = max_degree + 3
 
     min_time, max_time = df_clean["epoch"].min(), df_clean["epoch"].max()
     interval_td = datetime.timedelta(minutes=batch_length_mins)
@@ -65,6 +65,7 @@ def _gg_calibration(
     for int_idx_ in range(int_number):
         start_time = int_starts[int_idx_]
         end_time = start_time + interval_td
+        batch_center = start_time + interval_td / 2
 
         int_df = df_clean.filter(
             (pl.col("epoch") >= start_time) & (pl.col("epoch") < end_time)
@@ -77,11 +78,19 @@ def _gg_calibration(
             int_df["id_arc_valid"], return_inverse=True
         )
 
+        epochs_np = int_df["epoch"].to_numpy()
+        batch_center_np = np.datetime64(batch_center)
+        dt_utc_hours = (epochs_np - batch_center_np) / np.timedelta64(1, "h")
+        lon_ipp_np = int_df["lon_ipp"].to_numpy()
+        lon_rec_np = int_df["lon_rec"].to_numpy()
+        delta_lt = dt_utc_hours + (lon_ipp_np - lon_rec_np) / 15.0
+
         poly_coeffs_matrix = _polynomial_expansion(
             int_df["modip_ipp"].to_numpy(),
             int_df["modip_rec"].to_numpy(),
-            int_df["lon_ipp"].to_numpy(),
-            int_df["lon_rec"].to_numpy(),
+            lon_ipp_np,
+            lon_rec_np,
+            delta_lt,
             max_degree,
         )
 
@@ -223,7 +232,7 @@ def _estimate_veq_batches(
         Zenithal TEC values at batch centers.
     """
     df_clean = df_clean.sort("epoch")
-    n_coeffs = max_degree + 2
+    n_coeffs = max_degree + 3
 
     min_time, max_time = df_clean["epoch"].min(), df_clean["epoch"].max()
     batch_starts = pl.datetime_range(
@@ -235,6 +244,7 @@ def _estimate_veq_batches(
 
     for start_time in batch_starts:
         end_time = start_time + interval_td
+        batch_center = start_time + interval_td / 2
         batch_df = df_clean.filter(
             (pl.col("epoch") >= start_time) & (pl.col("epoch") < end_time)
         )
@@ -242,12 +252,20 @@ def _estimate_veq_batches(
         if batch_df.height < n_coeffs:
             continue
 
+        epochs_np = batch_df["epoch"].to_numpy()
+        batch_center_np = np.datetime64(batch_center)
+        dt_utc_hours = (epochs_np - batch_center_np) / np.timedelta64(1, "h")
+        lon_ipp_np = batch_df["lon_ipp"].to_numpy()
+        lon_rec_np = batch_df["lon_rec"].to_numpy()
+        delta_lt = dt_utc_hours + (lon_ipp_np - lon_rec_np) / 15.0
+
         # Basis functions for the current batch
         P = _polynomial_expansion(
             batch_df["modip_ipp"].to_numpy(),
             batch_df["modip_rec"].to_numpy(),
-            batch_df["lon_ipp"].to_numpy(),
-            batch_df["lon_rec"].to_numpy(),
+            lon_ipp_np,
+            lon_rec_np,
+            delta_lt,
             max_degree,
         )
 
