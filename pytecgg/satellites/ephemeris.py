@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 from typing import Any
 
@@ -25,6 +26,53 @@ def _get_gps_time(dt: datetime) -> tuple[int, float]:
     gps_week = delta.days // 7
     gps_seconds = (delta.days % 7) * 86400 + delta.seconds + delta.microseconds / 1e6
     return gps_week, gps_seconds
+
+
+# Broadcast ephemeris cadence (seconds) per Keplerian constellation, used to
+# detect a known rinex-crate parsing bug at the BDT/GST week rollover.
+_KEPLERIAN_CADENCE_S: dict[str, float] = {
+    "BEIDOU": 3600.0,
+    "GALILEO": 600.0,
+    "GPS": 7200.0,
+}
+
+
+def _drop_week_rollover_bug(
+    valid_data: pl.DataFrame, const_name: str, sv_id: str
+) -> pl.DataFrame:
+    """Drop ephemeris records corrupted by the rinex-crate (<=0.22) toe bug.
+
+    The crate misreads the toe field at the very first record of a new BDT/GST
+    week (toc seconds-of-week == 0), returning one broadcast-cadence step
+    instead of 0.0. The corrupted record's Keplerian propagation is off by one
+    cadence step, producing ~13000 km position errors for BeiDou MEO and
+    ~2300 km for Galileo MEO. We drop such records and warn the caller;
+    propagation falls back to the next valid record.
+    """
+    cadence = _KEPLERIAN_CADENCE_S.get(const_name)
+    if cadence is None or "toe" not in valid_data.columns:
+        return valid_data
+
+    mask_bad = (
+        (pl.col("epoch").dt.weekday() == 7)
+        & (pl.col("epoch").dt.hour() == 0)
+        & (pl.col("epoch").dt.minute() == 0)
+        & (pl.col("epoch").dt.second() == 0)
+        & (pl.col("toe") == cadence)
+    )
+    bad_count = valid_data.filter(mask_bad).height
+    if bad_count == 0:
+        return valid_data
+
+    warnings.warn(
+        f"Dropped {bad_count} {const_name} ephemeris record(s) for {sv_id} "
+        f"at BDT/GST week rollover: rinex-crate toe parsing bug returned "
+        f"toe={cadence:.0f}s where the file says 0.0s. Affected epoch(s) "
+        f"will fall back to the next valid record (~{cadence/60:.0f} min "
+        f"later) for position propagation.",
+        stacklevel=3,
+    )
+    return valid_data.filter(~mask_bad)
 
 
 def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
@@ -113,6 +161,7 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
                 position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
                 valid_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
+                valid_data = _drop_week_rollover_bug(valid_data, const_name, normalised_sat_id)
                 if valid_data.is_empty():
                     continue
 
