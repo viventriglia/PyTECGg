@@ -3,7 +3,7 @@ from typing import Any, Literal
 
 import numpy as np
 
-from ..constants import GNSS_CONSTANTS
+from ..constants import DEFAULT_LEAP_SECONDS_UTC_GPST, GNSS_CONSTANTS
 from pytecgg.satellites.kepler.orbits import (
     _is_ephemeris_valid,
     _compute_time_elapsed,
@@ -72,6 +72,15 @@ def _kepler_satellite_coordinates(
         raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
     data = ephem_dict[sv_id]
+    # prepare_ephemeris now stores a list of broadcast records per Keplerian SV.
+    # Pick the one nearest to obs_time when called with the full list.
+    if isinstance(data, list):
+        if not data:
+            return np.array([], dtype=float)
+        if obs_time is not None:
+            data = min(data, key=lambda r: abs(r["datetime"] - obs_time))
+        else:
+            data = data[len(data) // 2]
     if not _is_ephemeris_valid(data, sv_id, REQUIRED_KEYS):
         return np.array([], dtype=float)
 
@@ -82,7 +91,11 @@ def _kepler_satellite_coordinates(
         A = data["sqrta"] ** 2
         n0 = np.sqrt(gm / (A**3))
         tk = _compute_time_elapsed(
-            computation_time, gps_week=data["gps_week"], toe=data["toe"]
+            computation_time,
+            gps_week=data["gps_week"],
+            toe=data["toe"],
+            gnss_system=gnss_system,
+            leap_seconds=data.get("leap_seconds", DEFAULT_LEAP_SECONDS_UTC_GPST),
         )
 
         # Orbital parameters
@@ -106,11 +119,23 @@ def _kepler_satellite_coordinates(
         rk = A * (1 - data["e"] * np.cos(Ek)) + delta_rk
         ik = data["i0"] + data["idot"] * tk + delta_ik
 
+        # BeiDou GEO satellites are propagated in an inertial frame first,
+        # then rotated to ECEF by _apply_geo_correction below (BDS ICD B1I
+        # §5.2.4.12). Other Keplerian sats fold the ECEF rotation into lamk
+        # via the -we*tk term.
+        is_beidou_geo = gnss_system == "BEIDOU" and data["i0"] <= 20 * (np.pi / 180)
+
         # Longitude of ascending node
-        lamk = np.fmod(
-            data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
-            2 * np.pi,
-        )
+        if is_beidou_geo:
+            lamk = np.fmod(
+                data["omega0"] + data["omegaDot"] * tk - we * data["toe"],
+                2 * np.pi,
+            )
+        else:
+            lamk = np.fmod(
+                data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
+                2 * np.pi,
+            )
 
         # Position in orbital plane
         xDash, yDash = rk * np.cos(uk), rk * np.sin(uk)
@@ -120,10 +145,8 @@ def _kepler_satellite_coordinates(
         Yk = xDash * np.sin(lamk) + yDash * np.cos(ik) * np.cos(lamk)
         Zk = yDash * np.sin(ik)
 
-        if gnss_system == "BEIDOU":
-            # GEO orbits correction
-            if data["i0"] <= 20 * (np.pi / 180):
-                Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)
+        if is_beidou_geo:
+            Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)
 
         return np.array([Xk, Yk, Zk], dtype=float)
 

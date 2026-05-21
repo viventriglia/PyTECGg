@@ -3,7 +3,12 @@ from typing import Any
 
 import polars as pl
 
-from .constants import CONSTELLATION_PARAMS, GPS_EPOCH, KEPLERIAN_POSITION_FIELDS
+from .constants import (
+    CONSTELLATION_PARAMS,
+    DEFAULT_LEAP_SECONDS_UTC_GPST,
+    GPS_EPOCH,
+    KEPLERIAN_POSITION_FIELDS,
+)
 from pytecgg.context import GNSSContext
 
 Ephem = dict[str, dict[str, Any] | list[dict[str, Any]]]
@@ -53,6 +58,9 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     """
     ephem_dict: Ephem = {}
     inverse_map = ctx.symbol_to_name
+    leap_seconds = (
+        ctx.leap_seconds if ctx.leap_seconds is not None else DEFAULT_LEAP_SECONDS_UTC_GPST
+    )
 
     for symbol_ in ctx.systems:
         const_name = inverse_map.get(symbol_)
@@ -89,6 +97,7 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                         "datetime": ephe_time,
                         "gps_week": gps_week,
                         "gps_seconds": gps_sec,
+                        "leap_seconds": leap_seconds,
                         **{field: row.get(field) for field in params.fields},
                     }
                     sat_ephems_list.append(ephem)
@@ -96,26 +105,33 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 ephem_dict[normalised_sat_id] = sat_ephems_list
 
             else:
-                # Keplerian models (GPS, Galileo, BeiDou) use a single representative message to minimise computational cost.
+                # Keplerian models (GPS, Galileo, BeiDou): keep every valid record
+                # so the caller can pick the one nearest to the observation epoch.
+                # Broadcast Keplerian parameters are only valid for ~±2 h around toe,
+                # so reusing one record across a multi-hour file causes 50-200 m bias.
                 # Validate only on fields required for position computation, not all EPHEMERIS_FIELDS
                 # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
                 position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
-                valid_data = sat_data.drop_nulls(subset=position_fields)
+                valid_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
                 if valid_data.is_empty():
                     continue
 
-                ephe_row = valid_data.row(len(valid_data) // 2, named=True)
-                ephe_time = ephe_row["epoch"]
-                gps_week, gps_sec = _get_gps_time(ephe_time)
+                sat_ephems_list = []
+                for row in valid_data.to_dicts():
+                    ephe_time = row["epoch"]
+                    gps_week, gps_sec = _get_gps_time(ephe_time)
 
-                ephem = {
-                    "constellation": const_name,
-                    "sv": normalised_sat_id,
-                    "datetime": ephe_time,
-                    "gps_week": gps_week,
-                    "gps_seconds": gps_sec,
-                    **{field: ephe_row.get(field) for field in params.fields},
-                }
-                ephem_dict[normalised_sat_id] = ephem
+                    ephem = {
+                        "constellation": const_name,
+                        "sv": normalised_sat_id,
+                        "datetime": ephe_time,
+                        "gps_week": gps_week,
+                        "gps_seconds": gps_sec,
+                        "leap_seconds": leap_seconds,
+                        **{field: row.get(field) for field in params.fields},
+                    }
+                    sat_ephems_list.append(ephem)
+
+                ephem_dict[normalised_sat_id] = sat_ephems_list
 
     return ephem_dict

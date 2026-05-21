@@ -1,9 +1,10 @@
 import datetime
 import warnings
+from typing import Optional
 
 import numpy as np
 
-from ..constants import TOL_KEPLER
+from ..constants import BDT_OFFSET_FROM_GPST, DEFAULT_LEAP_SECONDS_UTC_GPST, TOL_KEPLER
 
 
 def _is_ephemeris_valid(data: dict, sv_id: str, required_keys: dict) -> bool:
@@ -25,25 +26,61 @@ def _gps_to_datetime(time_week, time_s, leap_seconds=0):
     )
 
 
+def _utc_to_system_time(
+    obs_time_utc: datetime.datetime,
+    gnss_system: Optional[str],
+    leap_seconds: int,
+) -> datetime.datetime:
+    """Shift a UTC observation datetime into the constellation's time system.
+
+    GPS / Galileo / QZSS reference broadcast ephemerides to GPST, BeiDou to BDT,
+    GLONASS to UTC. The ICDs fix all offsets:
+
+    - GPST = UTC + leap_seconds (currently 18 s, IERS Bulletin C).
+    - GST  = GPST (Galileo ICD).
+    - QZSST = GPST (QZSS ICD).
+    - BDT  = GPST - 14 s (BDS ICD, BDT epoch 2006-01-01).
+    - GLONASS uses UTC directly (no shift).
+    """
+    if gnss_system in ("GPS", "GALILEO", "QZSS"):
+        return obs_time_utc + datetime.timedelta(seconds=leap_seconds)
+    if gnss_system == "BEIDOU":
+        return obs_time_utc + datetime.timedelta(
+            seconds=leap_seconds - BDT_OFFSET_FROM_GPST
+        )
+    return obs_time_utc
+
+
 def _compute_time_elapsed(
-    obs_time: datetime.datetime, gps_week: int, toe: int
+    obs_time: datetime.datetime,
+    gps_week: int,
+    toe: int,
+    gnss_system: Optional[str] = None,
+    leap_seconds: int = DEFAULT_LEAP_SECONDS_UTC_GPST,
 ) -> float:
-    """Compute the time elapsed since the ephemeris reference epoch (ToE)"""
+    """Compute the time elapsed since the ephemeris reference epoch (ToE).
+
+    ``obs_time`` is interpreted as UTC and shifted into the constellation's
+    own time system before subtracting the toe. ``gnss_system`` selects which
+    offset applies (GPST / GST / BDT / UTC for GLONASS).
+    """
     if not isinstance(obs_time, datetime.datetime):
         raise TypeError("Invalid datetime format in ephemeris data")
+
+    # Ensure obs_time is tz-aware UTC before applying the leap-second shift.
+    if obs_time.tzinfo is None:
+        obs_time = obs_time.replace(tzinfo=datetime.timezone.utc)
+
+    obs_time_in_sys = _utc_to_system_time(obs_time, gnss_system, leap_seconds)
 
     toe_dt = _gps_to_datetime(
         time_week=gps_week,
         time_s=toe,
     )
-
-    # Ensure both times are tz-aware
-    if obs_time.tzinfo is not None and toe_dt.tzinfo is None:
+    if toe_dt.tzinfo is None:
         toe_dt = toe_dt.replace(tzinfo=datetime.timezone.utc)
-    elif obs_time.tzinfo is None and toe_dt.tzinfo is not None:
-        obs_time = obs_time.replace(tzinfo=datetime.timezone.utc)
 
-    return (obs_time - toe_dt).total_seconds()
+    return (obs_time_in_sys - toe_dt).total_seconds()
 
 
 def _kepler(e: float, mk: float, tol: float) -> float:

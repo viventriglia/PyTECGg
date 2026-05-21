@@ -43,5 +43,9 @@ def test_prepare_ephemeris_nav_v3(nav_v3_file):
     for sat, eph in ephemeris.items():
         assert sat.startswith("G")
         assert len(sat) == 3
-        assert eph["datetime"].tzinfo is not None
-        assert eph["constellation"] == "GPS"
+        # Keplerian SVs now carry the full list of broadcast records so
+        # downstream code can pick the one nearest to obs_time.
+        assert isinstance(eph, list) and eph, f"expected non-empty list for {sat}"
+        for record in eph:
+            assert record["datetime"].tzinfo is not None
+            assert record["constellation"] == "GPS"
