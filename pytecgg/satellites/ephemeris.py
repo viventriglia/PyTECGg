@@ -15,8 +15,10 @@ from pytecgg.context import GNSSContext
 Ephem = dict[str, dict[str, Any] | list[dict[str, Any]]]
 """Type alias for a dictionary containing processed ephemeris data.
 
-It maps satellite IDs (e.g., 'G01') to their specific orbital parameters, 
-handling both Keplerian (single dict) and state-vector (list of dicts) models.
+It maps satellite IDs (e.g., 'G01') to their orbital parameters. Values are
+a list of broadcast records for every constellation (Keplerian and
+state-vector); downstream code picks the record nearest the observation
+epoch. A plain dict is still accepted for legacy / hand-built ephemerides.
 """
 
 
@@ -83,13 +85,22 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     their specific orbit propagation models:
 
     1.  Keplerian Orbits (GPS, Galileo, BeiDou):
-        Selects a single representative ephemeris message (the central one) per satellite.
+        Keeps every valid broadcast record per satellite. Position computation
+        later picks the record nearest to the observation epoch, since broadcast
+        Keplerian parameters are only valid for ~±2 h around toe. Records
+        corrupted by the rinex-crate week-rollover bug are filtered out (see
+        ``_drop_week_rollover_bug``).
 
     2.  State-Vector Orbits (GLONASS):
         All available ephemeris messages are collected for the satellite. This is
         required because GLONASS messages contain instantaneous state vectors (position/
         velocity/acceleration) valid only for short periods (typically ± 15 minutes),
         requiring numerical integration from the closest epoch.
+
+    Each record carries the ``leap_seconds`` value taken from
+    ``ctx.leap_seconds`` (populated from the RINEX nav header via
+    :func:`pytecgg.parsing.read_rinex_nav_header`) or
+    ``DEFAULT_LEAP_SECONDS_UTC_GPST`` when the context does not provide one.
 
     Parameters
     ----------
@@ -101,8 +112,8 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     Returns
     -------
     Ephem
-        Dictionary keyed by satellite ID (e.g., 'G01', 'R09').
-        Values are a single dict for Keplerian systems or a list of dicts for GLONASS.
+        Dictionary keyed by satellite ID (e.g., 'G01', 'R09'). Values are a
+        list of broadcast records (one dict per valid message).
     """
     ephem_dict: Ephem = {}
     inverse_map = ctx.symbol_to_name

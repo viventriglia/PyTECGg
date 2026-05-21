@@ -1,9 +1,12 @@
+import datetime
+
 import numpy as np
 import polars as pl
 
 from pytecgg.satellites.kepler.orbits import _apply_geo_correction, _compute_anomalies
 from pytecgg.satellites import GNSS_CONSTANTS
 from pytecgg.satellites import positions as positions_module
+from pytecgg.satellites.positions import _pick_nearest_keplerian_record
 
 
 # def test_numerical_output(ephemeris_data):
@@ -94,3 +97,38 @@ def test_glonass_ephemeris_schema_preserves_string_fields(monkeypatch):
 
     assert not result.is_empty()
     assert captured["schema"]["constellation"] == pl.String
+
+
+# _pick_nearest_keplerian_record
+
+
+def _record(dt: datetime.datetime) -> dict:
+    return {"datetime": dt, "toe": 0.0}
+
+
+def test_pick_nearest_keplerian_record_chooses_closest():
+    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    records = [
+        _record(datetime.datetime(2025, 1, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)),
+        _record(datetime.datetime(2025, 1, 1, 11, 30, 0, tzinfo=datetime.timezone.utc)),
+        _record(datetime.datetime(2025, 1, 1, 14, 0, 0, tzinfo=datetime.timezone.utc)),
+    ]
+
+    chosen = _pick_nearest_keplerian_record(records, epoch)
+
+    assert chosen is records[1]
+
+
+def test_pick_nearest_keplerian_record_accepts_legacy_dict():
+    """Manually built single-dict ephem entries must still work."""
+    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    record = _record(datetime.datetime(2025, 1, 1, 10, 0, 0, tzinfo=datetime.timezone.utc))
+
+    chosen = _pick_nearest_keplerian_record(record, epoch)
+
+    assert chosen is record
+
+
+def test_pick_nearest_keplerian_record_empty_list_returns_none():
+    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    assert _pick_nearest_keplerian_record([], epoch) is None
