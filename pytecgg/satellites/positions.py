@@ -13,6 +13,22 @@ from pytecgg.satellites.state_vector.coordinates import (
 PREFIX_MAP = {v: k for k, v in SUPPORTED_SYSTEMS.items()}
 
 
+def _pick_nearest_keplerian_record(
+    records: Union[dict[str, Any], list[dict[str, Any]]],
+    epoch: Any,
+) -> Union[dict[str, Any], None]:
+    """Pick the broadcast record whose datetime is nearest to `epoch`.
+
+    Accepts either a list of records (current format) or a single record dict
+    (legacy format) so manually built ephem_dicts keep working.
+    """
+    if isinstance(records, dict):
+        return records
+    if not records:
+        return None
+    return min(records, key=lambda r: abs(r["datetime"] - epoch))
+
+
 def _infer_schema_overrides(records: list[dict[str, Any]]) -> dict[str, pl.DataType]:
     """Infer stable schema overrides for mixed GLONASS ephemeris records."""
     overrides: dict[str, pl.DataType] = {}
@@ -101,11 +117,6 @@ def _compute_coordinates(
         DataFrame with columns: 'sv', 'epoch', 'sat_x', 'sat_y', 'sat_z'
         containing satellite ECEF coordinates in meters.
     """
-    sv_arr = sv_ids.to_numpy()
-    size = len(sv_arr)
-
-    x, y, z = np.full(size, np.nan), np.full(size, np.nan), np.full(size, np.nan)
-
     # Track satellites with no or problematic ephemeris for warnings
     missing_eph = set()
     calculation_failed = set()
@@ -116,7 +127,18 @@ def _compute_coordinates(
 
     # GLONASS (State-vector integration logic)
     if isinstance(ephem_data, pl.DataFrame):
+        # ephem_data is the join_asof result, which is sorted by (sv, epoch).
+        # Use its sv/epoch columns for the output so each computed (x, y, z)
+        # stays aligned with the corresponding input pair — using the unsorted
+        # input series here would mis-align rows.
         data_rows = ephem_data.to_dicts()
+        size = len(data_rows)
+        out_sv = [row["sv"] for row in data_rows]
+        out_epoch = [row["epoch"] for row in data_rows]
+        x = np.full(size, np.nan)
+        y = np.full(size, np.nan)
+        z = np.full(size, np.nan)
+
         for i, row in enumerate(data_rows):
             sv_id = row["sv"]
 
@@ -137,13 +159,27 @@ def _compute_coordinates(
 
     # Keplerian systems (GPS, Galileo, BeiDou, QZSS)
     else:
+        sv_arr = sv_ids.to_numpy()
+        size = len(sv_arr)
+        out_sv = sv_arr
+        out_epoch = epochs
+        x = np.full(size, np.nan)
+        y = np.full(size, np.nan)
+        z = np.full(size, np.nan)
+
         for i, (sv, epoch) in enumerate(zip(sv_arr, epochs)):
-            if sv not in ephem_data:
+            records = ephem_data.get(sv)
+            if not records:
+                missing_eph.add(sv)
+                continue
+
+            chosen = _pick_nearest_keplerian_record(records, epoch)
+            if chosen is None:
                 missing_eph.add(sv)
                 continue
 
             try:
-                pos = coord_func(ephem_data, sv, system_label, epoch, **kwargs)
+                pos = coord_func({sv: chosen}, sv, system_label, epoch, **kwargs)
                 if pos is not None and pos.size == 3:
                     x[i], y[i], z[i] = pos
                 else:
@@ -156,8 +192,8 @@ def _compute_coordinates(
 
     return pl.DataFrame(
         {
-            "sv": sv_arr,
-            "epoch": epochs,
+            "sv": out_sv,
+            "epoch": out_epoch,
             "sat_x": x,
             "sat_y": y,
             "sat_z": z,
