@@ -43,6 +43,10 @@ class GNSSContext:
     freq_meta : dict[str, Any]
         Additional metadata related to signal
         frequencies and observation types used during processing.
+    leap_seconds : int, optional
+        UTC -> GPST offset in seconds. Typically populated from the RINEX
+        navigation header; falls back to ``DEFAULT_LEAP_SECONDS_UTC_GPST``
+        from ``constants.py`` when left unset.
 
     Notes
     -----
