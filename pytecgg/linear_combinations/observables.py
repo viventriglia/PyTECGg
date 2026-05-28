@@ -177,11 +177,76 @@ def _resolve_band_pairs(
     return BAND_PAIR_PRIORITY_BY_MODE.get(selection_mode, {}).get(system_symbol, [])
 
 
+def _resolve_obs_override(
+    df_pivot: pl.DataFrame,
+    system: str,
+    obs_override: dict[str, tuple[str, str]],
+) -> Optional[SelectedSignalPair]:
+    """
+    Build a SelectedSignalPair from a fully specified phase/code observable pin.
+
+    ``obs_override`` provides the literal observable names to use, for example
+    ``{"phase": ("L1P", "L2X"), "code": ("C1X", "C2P")}``. Bands and frequencies
+    are derived from the code pair. The pin is honoured only if all four
+    observables are present in ``df_pivot``; otherwise ``None`` is returned so the
+    caller can skip the satellite.
+    """
+    phase = obs_override.get("phase")
+    code = obs_override.get("code")
+    if phase is None or code is None:
+        raise ValueError(
+            "obs_override must provide both 'phase' and 'code' observable pairs"
+        )
+
+    phase1_in, phase2_in = phase
+    code1_in, code2_in = code
+
+    band1 = _extract_band_key(code1_in)
+    band2 = _extract_band_key(code2_in)
+    if band1 is None or band2 is None:
+        raise ValueError(
+            f"Could not parse bands from code override {code} for system '{system}'"
+        )
+    if band1 == band2:
+        raise ValueError("obs_override code observables must be on two distinct bands")
+    if band1 not in FREQ_BANDS[system] or band2 not in FREQ_BANDS[system]:
+        raise ValueError(
+            f"Invalid code override {code} for system '{system}'. "
+            f"Expected bands among {list(FREQ_BANDS[system])}."
+        )
+
+    available = set(df_pivot.columns)
+    if not {phase1_in, phase2_in, code1_in, code2_in}.issubset(available):
+        return None
+
+    pairs = sorted(
+        [(band1, phase1_in, code1_in), (band2, phase2_in, code2_in)],
+        key=lambda item: _band_frequency(system, item[0]),
+    )
+    (band_lo, phase_lo, code_lo), (band_hi, phase_hi, code_hi) = pairs
+
+    joint_coverage = _complete_rows(
+        df_pivot, [phase_lo, phase_hi, code_lo, code_hi]
+    )
+
+    return SelectedSignalPair(
+        system=system,
+        band1=band_lo,
+        band2=band_hi,
+        phase1=phase_lo,
+        phase2=phase_hi,
+        code1=code_lo,
+        code2=code_hi,
+        joint_coverage=joint_coverage,
+    )
+
+
 def select_observable_pair_from_pivot(
     df_pivot: pl.DataFrame,
     system: str,
     selection_mode: SelectionMode = "quality",
     band_override: tuple[str, str] | None = None,
+    obs_override: dict[str, tuple[str, str]] | None = None,
 ) -> Optional[SelectedSignalPair]:
     """
     Select a coherent dual-frequency band pair from a pivoted observation table.
@@ -197,6 +262,11 @@ def select_observable_pair_from_pivot(
     band_override : tuple[str, str] | None
         Optional user-forced band pair. Bands can be provided in any order, for
         example ("L1", "L5") or ("L5", "L1").
+    obs_override : dict[str, tuple[str, str]] | None
+        Optional fully specified phase/code observable pin, for example
+        ``{"phase": ("L1P", "L2X"), "code": ("C1X", "C2P")}``. When provided it
+        takes precedence over ``band_override`` and ``selection_mode``; the pin is
+        honoured only if all four observables exist, otherwise None is returned.
 
     Returns
     -------
@@ -209,6 +279,9 @@ def select_observable_pair_from_pivot(
 
     if df_pivot.is_empty():
         return None
+
+    if obs_override is not None:
+        return _resolve_obs_override(df_pivot, system_symbol, obs_override)
 
     band_pairs = _resolve_band_pairs(system_symbol, selection_mode, band_override)
     if not band_pairs:
@@ -282,6 +355,7 @@ def select_observable_pair(
     rinex_version: str,
     selection_mode: SelectionMode = "quality",
     band_override: tuple[str, str] | None = None,
+    obs_override: dict[str, tuple[str, str]] | None = None,
 ) -> Optional[SelectedSignalPair]:
     """
     Select a coherent dual-frequency band pair and the best phase/code observables
@@ -300,6 +374,10 @@ def select_observable_pair(
     band_override : tuple[str, str] | None
         Optional user-forced band pair. Bands can be provided in any order, for
         example ("L1", "L5") or ("L5", "L1").
+    obs_override : dict[str, tuple[str, str]] | None
+        Optional fully specified phase/code observable pin, for example
+        ``{"phase": ("L1P", "L2X"), "code": ("C1X", "C2P")}``. Takes precedence
+        over ``band_override`` and ``selection_mode``.
 
     Returns
     -------
@@ -329,6 +407,7 @@ def select_observable_pair(
         system=system_symbol,
         selection_mode=selection_mode,
         band_override=band_override,
+        obs_override=obs_override,
     )
 
 

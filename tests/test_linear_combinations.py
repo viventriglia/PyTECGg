@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import polars as pl
+import pytest
 
 from pytecgg.context import GNSSContext
 from pytecgg.linear_combinations.mw import _calculate_melbourne_wubbena
@@ -368,6 +369,125 @@ def test_extract_arcs_accepts_per_satellite_beidou_freq_meta():
     assert not result.is_empty()
     assert "gflc_levelled" in result.columns
     assert result.filter(pl.col("id_arc_valid").is_not_null()).height == 6
+
+
+def test_obs_overrides_force_exact_phase_and_code_observables():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 8,
+            "sv": ["G01"] * 8,
+            "observable": ["L1C", "L1P", "L2W", "L2X", "C1C", "C1X", "C2W", "C2X"],
+            "value": [
+                1000.0,
+                1000.5,
+                800.0,
+                800.5,
+                20_000_000.0,
+                20_000_001.0,
+                20_000_010.0,
+                20_000_011.0,
+            ],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df,
+        ctx,
+        combinations=["gflc_phase", "gflc_code"],
+        obs_overrides={"G01": {"phase": ("L1P", "L2X"), "code": ("C1X", "C2W")}},
+    )
+
+    assert not df_lc.is_empty()
+    # Bands ordered by frequency: L2 (1227.6) first, L1 (1575.42) second
+    assert df_lc["gflc_phase_obs_used"].to_list() == ["L2X,L1P"]
+    assert df_lc["gflc_code_obs_used"].to_list() == ["C2W,C1X"]
+    # Non-BeiDou system routed per-sv when an override exists -> dict freq_meta
+    assert ctx.freq_meta["G"] == {"G01": (1227.6, 1575.42)}
+
+
+def test_obs_overrides_skip_sv_when_a_channel_is_missing():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 4,
+            "sv": ["G01"] * 4,
+            "observable": ["L1P", "L2X", "C1X", "C2W"],
+            "value": [1000.0, 800.0, 20_000_000.0, 20_000_010.0],
+        }
+    )
+
+    # Request L1C for phase, which is absent -> sv must be skipped
+    df_lc = calculate_linear_combinations(
+        obs_df,
+        ctx,
+        combinations=["gflc_phase", "gflc_code"],
+        obs_overrides={"G01": {"phase": ("L1C", "L2X"), "code": ("C1X", "C2W")}},
+    )
+
+    assert df_lc.is_empty()
+
+
+def test_obs_overrides_only_affect_listed_satellites():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 8,
+            "sv": ["G01"] * 4 + ["G02"] * 4,
+            "observable": [
+                "L1P",
+                "L2X",
+                "C1X",
+                "C2W",
+                "L1C",
+                "L2W",
+                "C1C",
+                "C2W",
+            ],
+            "value": [
+                1000.0,
+                800.0,
+                20_000_000.0,
+                20_000_010.0,
+                1100.0,
+                900.0,
+                21_000_000.0,
+                21_000_010.0,
+            ],
+        }
+    )
+
+    df_lc = calculate_linear_combinations(
+        obs_df,
+        ctx,
+        combinations=["gflc_code"],
+        obs_overrides={"G01": {"phase": ("L1P", "L2X"), "code": ("C1X", "C2W")}},
+    )
+
+    used = dict(zip(df_lc["sv"], df_lc["gflc_code_obs_used"]))
+    assert used["G01"] == "C2W,C1X"
+    # G02 has no override -> normal selection still applies
+    assert used["G02"] == "C2W,C1C"
+
+
+def test_obs_overrides_and_band_overrides_are_mutually_exclusive():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1, 0, 0, 0)] * 4,
+            "sv": ["G01"] * 4,
+            "observable": ["L1P", "L2X", "C1X", "C2W"],
+            "value": [1000.0, 800.0, 20_000_000.0, 20_000_010.0],
+        }
+    )
+
+    with pytest.raises(ValueError):
+        calculate_linear_combinations(
+            obs_df,
+            ctx,
+            band_overrides={"G": ("L1", "L2")},
+            obs_overrides={"G01": {"phase": ("L1P", "L2X"), "code": ("C1X", "C2W")}},
+        )
 
 
 def test_beidou_band_override_is_applied_per_satellite():
