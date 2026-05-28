@@ -45,31 +45,46 @@ def _drop_week_rollover_bug(
     """Drop ephemeris records corrupted by the rinex-crate (<=0.22) toe bug.
 
     The crate misreads the toe field at the very first record of a new BDT/GST
-    week (toc seconds-of-week == 0), returning one broadcast-cadence step
-    instead of 0.0. The corrupted record's Keplerian propagation is off by one
-    cadence step, producing ~13000 km position errors for BeiDou MEO and
-    ~2300 km for Galileo MEO. We drop such records and warn the caller;
+    week (toc seconds-of-week == 0), returning roughly one broadcast-cadence
+    step instead of 0.0. The misparse is not always exactly one cadence step:
+    GPS records at the 2021-01-03 rollover were observed with toe in
+    {7168, 7184, 7200} where the file says 0.0 (cadence 7200). The corrupted
+    record's Keplerian propagation is off by ~one cadence step, producing
+    ~26000 km position errors for GPS MEO, ~13000 km for BeiDou MEO and
+    ~2300 km for Galileo MEO.
+
+    Detection: at a genuine week-start record (toc at Sunday 00:00:00) the true
+    toe must be ~0, so any toe in the upper half of the cadence interval
+    (>= cadence/2) is a misparse. We drop such records and warn the caller;
     propagation falls back to the next valid record.
     """
     cadence = _KEPLERIAN_CADENCE_S.get(const_name)
     if cadence is None or "toe" not in valid_data.columns:
         return valid_data
 
+    # At a true week-start record toe ~ 0; a misparse lands near a full cadence
+    # step (observed slightly below, e.g. 7168/7184 for GPS's 7200). Half the
+    # cadence is a safe separator: a legitimate first-of-week toe is nowhere
+    # near cadence/2.
     mask_bad = (
         (pl.col("epoch").dt.weekday() == 7)
         & (pl.col("epoch").dt.hour() == 0)
         & (pl.col("epoch").dt.minute() == 0)
         & (pl.col("epoch").dt.second() == 0)
-        & (pl.col("toe") == cadence)
+        & (pl.col("toe") >= cadence / 2)
     )
     bad_count = valid_data.filter(mask_bad).height
     if bad_count == 0:
         return valid_data
 
+    bad_toes = sorted(
+        v for v in valid_data.filter(mask_bad)["toe"].unique().to_list()
+        if v is not None
+    )
     warnings.warn(
         f"Dropped {bad_count} {const_name} ephemeris record(s) for {sv_id} "
         f"at BDT/GST week rollover: rinex-crate toe parsing bug returned "
-        f"toe={cadence:.0f}s where the file says 0.0s. Affected epoch(s) "
+        f"toe={bad_toes}s where the file says 0.0s. Affected epoch(s) "
         f"will fall back to the next valid record (~{cadence/60:.0f} min "
         f"later) for position propagation.",
         stacklevel=3,
