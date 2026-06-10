@@ -281,6 +281,20 @@ def extract_arcs(
         _add_arc_id(min_arc_length=min_arc_length, receiver_acronym=ctx.receiver_name)
     )
 
+    # Drop loss-of-lock and null-LC epochs before fixing.  Arc IDs are already
+    # assigned above (boundaries are defined by the LoL cum-sum), so removing
+    # these rows here preserves the arc segmentation while keeping garbage
+    # re-acquisition values out of the jump/cumsum baseline in _remove_cs_jumps.
+    # Note: is_loss_of_lock may be null for rows with no CS-detection match
+    # (left join). `col != True` returns null for those and filter() drops nulls,
+    # so use fill_null(False) to drop ONLY genuine loss-of-lock rows.
+    df_lc_arcs = df_lc_arcs.filter(
+        (~pl.col("is_loss_of_lock").fill_null(False))
+        & pl.col("gflc_phase").is_not_null()
+        & pl.col("gflc_code").is_not_null()
+        & pl.col("mw").is_not_null()
+    )
+
     # Apply corrections to the linear combinations and perform phase-to-code levelling
     df_lc_arcs_fix = _remove_cs_jumps(df=df_lc_arcs, threshold_jump=threshold_jump)
 
