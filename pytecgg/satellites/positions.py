@@ -1,3 +1,4 @@
+import datetime
 import warnings
 from typing import Any, Callable, Union
 
@@ -11,6 +12,10 @@ from pytecgg.satellites.state_vector.coordinates import (
 )
 
 PREFIX_MAP = {v: k for k, v in SUPPORTED_SYSTEMS.items()}
+
+# Broadcast Keplerian records are valid ~±2 h around toe; allow one missing
+# record before treating the satellite as having no ephemeris
+MAX_KEPLERIAN_RECORD_AGE = datetime.timedelta(hours=4)
 
 
 def _pick_nearest_keplerian_record(
@@ -26,7 +31,10 @@ def _pick_nearest_keplerian_record(
         return records
     if not records:
         return None
-    return min(records, key=lambda r: abs(r["datetime"] - epoch))
+    nearest = min(records, key=lambda r: abs(r["datetime"] - epoch))
+    if abs(nearest["datetime"] - epoch) > MAX_KEPLERIAN_RECORD_AGE:
+        return None
+    return nearest
 
 
 def _infer_schema_overrides(records: list[dict[str, Any]]) -> dict[str, pl.DataType]:
@@ -73,7 +81,7 @@ def _emit_warnings(system: str, missing: set[str], failed: set[str]) -> None:
             )
         else:
             info = f"{sv_ids} {verb} no valid ephemerides"
-            reason = f"{pron} may be missing from NAV file or {verb} been excluded due to invalid/incomplete parameters"
+            reason = f"{pron} may be missing from NAV file, more than 4 h away from the observation, or {verb} been excluded due to invalid/incomplete parameters"
 
         warnings.warn(
             f"[{system}] {info}. Coordinates set to NaN.\n" f"ℹ️  {reason}.\n",

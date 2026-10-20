@@ -138,6 +138,14 @@ def test_pick_nearest_keplerian_record_empty_list_returns_none():
     assert _pick_nearest_keplerian_record([], epoch) is None
 
 
+def test_pick_nearest_keplerian_record_rejects_stale_records():
+    """Real nav files can hold years-old records (e.g. BeiDou C01 from 2019 in
+    a 2025 file); using them puts the satellite hundreds of km off."""
+    epoch = datetime.datetime(2025, 3, 28, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    records = [_record(datetime.datetime(2019, 3, 26, 9, 0, 0, tzinfo=datetime.timezone.utc))]
+    assert _pick_nearest_keplerian_record(records, epoch) is None
+
+
 # Real-data check: geometry must match measured pseudoranges
 
 _C = 299_792_458.0
