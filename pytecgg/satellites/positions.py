@@ -328,7 +328,7 @@ def satellite_coordinates(
         return pl.DataFrame(
             schema={
                 "sv": pl.String,
-                "epoch": pl.Datetime,
+                "epoch": epochs.dtype,
                 "sat_x": pl.Float64,
                 "sat_y": pl.Float64,
                 "sat_z": pl.Float64,

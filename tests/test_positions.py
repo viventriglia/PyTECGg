@@ -174,7 +174,7 @@ def test_positions_match_pseudoranges(test_data_dir, obs_file, nav_file, system,
         (pl.col("epoch") == t) & pl.col("sv").str.starts_with(system) & (pl.col("observable") == code)
     ).drop_nulls("value")
     coords = satellite_coordinates(obs_t["sv"], obs_t["epoch"], ephem)
-    df = obs_t.join(coords.with_columns(pl.col("epoch").dt.replace_time_zone("UTC")), on=["sv", "epoch"])
+    df = obs_t.join(coords, on=["sv", "epoch"])
     df = df.filter(pl.col("sat_x").is_not_nan())
     assert df.height >= 4
 
@@ -186,3 +186,14 @@ def test_positions_match_pseudoranges(test_data_dir, obs_file, nav_file, system,
         residuals.append(row["value"] - rng + _C * sat_clock)
 
     assert np.std(residuals) < 200
+
+
+def test_satellite_coordinates_empty_result_keeps_epoch_dtype():
+    """With no supported satellites the result is empty, but it must still
+    join on ["sv", "epoch"] with the observations."""
+    obs = pl.DataFrame(
+        {"sv": ["S23"], "epoch": [datetime.datetime(2025, 1, 1, tzinfo=datetime.timezone.utc)]}
+    )
+    coords = satellite_coordinates(obs["sv"], obs["epoch"], {})
+    assert coords.is_empty()
+    assert obs.join(coords, on=["sv", "epoch"], how="left").height == 1
