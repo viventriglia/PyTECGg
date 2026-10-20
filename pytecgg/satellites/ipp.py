@@ -104,6 +104,7 @@ def calculate_ipp(
     )
 
     if min_elevation is not None:
-        df_result = df_result.filter(pl.col("ele") >= min_elevation)
+        # fill_nan: NaN >= x is True in polars; null rows are dropped by filter
+        df_result = df_result.filter(pl.col("ele").fill_nan(None) >= min_elevation)
 
     return df_result
