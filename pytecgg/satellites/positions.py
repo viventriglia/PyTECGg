@@ -13,9 +13,10 @@ from pytecgg.satellites.state_vector.coordinates import (
 
 PREFIX_MAP = {v: k for k, v in SUPPORTED_SYSTEMS.items()}
 
-# Broadcast Keplerian records are valid ~±2 h around toe; allow one missing
-# record before treating the satellite as having no ephemeris
-MAX_KEPLERIAN_RECORD_AGE = datetime.timedelta(hours=4)
+# Rejects stale records (days or years old). Broadcast records are nominally
+# valid ±2 h, but propagated 19 h they still give positions within ~50 m (GPS)
+# to ~350 m (BeiDou), far below what TEC geometry needs; sparse nav files rely on it
+MAX_KEPLERIAN_RECORD_AGE = datetime.timedelta(hours=24)
 
 
 def _pick_nearest_keplerian_record(
@@ -81,7 +82,7 @@ def _emit_warnings(system: str, missing: set[str], failed: set[str]) -> None:
             )
         else:
             info = f"{sv_ids} {verb} no valid ephemerides"
-            reason = f"{pron} may be missing from NAV file, more than 4 h away from the observation, or {verb} been excluded due to invalid/incomplete parameters"
+            reason = f"{pron} may be missing from NAV file, more than 24 h away from the observation, or {verb} been excluded due to invalid/incomplete parameters"
 
         warnings.warn(
             f"[{system}] {info}. Coordinates set to NaN.\n" f"ℹ️  {reason}.\n",
