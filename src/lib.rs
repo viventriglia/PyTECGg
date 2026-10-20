@@ -75,7 +75,8 @@ fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64), String)
 
                 for signal in &observations.signals {
                     epochs.push(ts);
-                    prns.push(signal.sv.to_string());
+                    // {:x} is always "S23"-style; Display names SBAS vehicles ("ASTRA-5B")
+                    prns.push(format!("{:x}", signal.sv));
                     codes.push(signal.observable.to_string());
                     values.push(signal.value);
                 }

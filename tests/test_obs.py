@@ -52,3 +52,12 @@ def test_read_rinex_obs_nonexistent_file(invalid_file):
     """Check that a FileNotFoundError is raised with a non-existent file"""
     with pytest.raises(FileNotFoundError):
         read_rinex_obs(invalid_file)
+
+
+def test_sv_ids_use_standard_format(parsed_rinex_obs_data):
+    """Every sv must be "<constellation letter><2-digit PRN>": the first
+    character selects the constellation everywhere downstream. rinex >= 0.24
+    names SBAS vehicles (S23 -> "ASTRA-5B") unless asked for this format."""
+    sv = parsed_rinex_obs_data["obs_data"]["sv"].unique()
+    assert "S23" in sv.to_list()
+    assert sv.str.contains(r"^[A-Z]\d{2}$").all()
