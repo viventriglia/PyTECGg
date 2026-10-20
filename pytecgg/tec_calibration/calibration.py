@@ -292,7 +292,8 @@ def calculate_tec(
     max_polynomial_degree : int
         Maximum degree of polynomial expansion used in calibration.
     batch_size_epochs : int
-        Number of epochs per batch for calibration.
+        Length of each calibration batch, in minutes (despite the name).
+        Default is 30.
 
     Returns
     -------
@@ -364,7 +365,7 @@ def calculate_vertical_equivalent(
     max_polynomial_degree : int, optional
         Same degree used for calibration. Default is 3.
     batch_size_epochs : int, optional
-        Same batch size used for calibration. Default is 30.
+        Same batch length used for calibration, in minutes. Default is 30.
 
     Returns
     -------
