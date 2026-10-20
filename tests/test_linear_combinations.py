@@ -521,3 +521,34 @@ def test_beidou_band_override_is_applied_per_satellite():
     assert not df_lc.is_empty()
     assert set(df_lc["sv"]) == {"C02"}
     assert ctx.freq_meta["C"] == {"C02": (1207.14, 1575.42)}
+
+
+def test_glonass_gflc_uses_full_precision_and_skips_unknown_channel():
+    """GLONASS frequencies depend on the channel; computing them in float32
+    shifts GFLC by tens of TECU. A satellite with no channel must be null,
+    not crash the whole run."""
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["R"])
+    ctx.glonass_channels = {"R01": -7}
+    values = {"L1C": 1.2e8, "L2C": 0.95e8, "C1C": 22_000_000.0, "C2C": 22_000_005.0}
+    obs_df = pl.DataFrame(
+        {
+            "epoch": [datetime(2023, 1, 1)] * 8,
+            "sv": ["R01"] * 4 + ["R02"] * 4,
+            "observable": list(values) * 2,
+            "value": list(values.values()) * 2,
+        }
+    )
+
+    df_lc = calculate_linear_combinations(obs_df, ctx, combinations=["gflc_phase"])
+
+    r01 = df_lc.filter(pl.col("sv") == "R01").row(0, named=True)
+    k, c = -7, 299_792_458.0
+    freqs = {"1": (1602 + k * 0.5625) * 1e6, "2": (1246 + k * 0.4375) * 1e6}
+    p1, p2 = r01["gflc_phase_obs_used"].split(",")
+    f1, f2 = freqs[p1[1]], freqs[p2[1]]
+    expected = (
+        (values[p1] * c / f1 - values[p2] * c / f2)
+        * (1 / 40.308) * (f1**2 * f2**2) / (f1**2 - f2**2) / 1e16
+    )
+    assert r01["gflc_phase"] == pytest.approx(expected, abs=1e-6)
+    assert df_lc.filter(pl.col("sv") == "R02")["gflc_phase"].to_list() == [None]

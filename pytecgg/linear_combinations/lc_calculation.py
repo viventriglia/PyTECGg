@@ -338,7 +338,9 @@ def calculate_linear_combinations(
             }
 
             df_step = df_pivot.with_columns(
-                pl.col("sv").replace(ctx.glonass_channels).cast(pl.Float32).alias("_k")
+                pl.col("sv")
+                .replace_strict(ctx.glonass_channels, default=None, return_dtype=pl.Float64)
+                .alias("_k")
             )
             freq1, freq2 = f1_map(pl.col("_k")), f2_map(pl.col("_k"))
         else:
