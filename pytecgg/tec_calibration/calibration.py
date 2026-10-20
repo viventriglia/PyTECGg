@@ -231,7 +231,8 @@ def _estimate_veq_batches(
             coeffs = solve_triangular(R, rhs)
             # vEq is the C0 coefficient (zenithal equivalent)
             veq_results[start_time + interval_td / 2] = coeffs[0]
-        except:
+        except np.linalg.LinAlgError:
+            # Singular batch (e.g. too few distinct pierce points): no vEq
             continue
 
     return veq_results
