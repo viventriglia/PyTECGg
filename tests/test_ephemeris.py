@@ -77,3 +77,23 @@ def test_prepare_ephemeris_populates_leap_seconds(nav_v3_file):
     )
     ephem_override = prepare_ephemeris(nav_data, ctx_override)
     assert ephem_override[any_sv][0]["leap_seconds"] == 37
+
+
+def test_prepare_ephemeris_keeps_one_galileo_record_per_epoch(nav_v3_file):
+    """Galileo nav files repeat each record once per data source (F/NAV 258,
+    I/NAV 513/516/517) with the same orbit; keep one, preferring I/NAV E1+E5b."""
+    nav_data = read_rinex_nav(nav_v3_file)
+    assert nav_data["GALILEO"].select("epoch", "sv").is_duplicated().any()
+
+    ctx = GNSSContext(
+        receiver_pos=(0.0, 0.0, 0.0),
+        receiver_name="TEST",
+        rinex_version="3.04",
+        systems=["E"],
+    )
+    ephemeris = prepare_ephemeris(nav_data, ctx)
+
+    records = [record for sv_records in ephemeris.values() for record in sv_records]
+    keys = [(record["sv"], record["datetime"]) for record in records]
+    assert len(keys) == len(set(keys))
+    assert {record["source"] for record in records} >= {517.0}

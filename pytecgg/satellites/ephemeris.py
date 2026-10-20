@@ -99,7 +99,14 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 # Validate only on fields required for position computation, not all EPHEMERIS_FIELDS
                 # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
                 position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
-                sat_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
+                sat_data = sat_data.drop_nulls(subset=position_fields)
+                if "source" in sat_data.columns:
+                    # Galileo files repeat each record per data source (F/NAV 258, I/NAV
+                    # 513/516/517) with the same orbit: keep I/NAV E1+E5b (517) if present
+                    sat_data = sat_data.sort("source", descending=True).unique(
+                        "epoch", keep="first"
+                    )
+                sat_data = sat_data.sort("epoch")
                 if sat_data.is_empty():
                     continue
 

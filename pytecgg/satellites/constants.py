@@ -116,6 +116,7 @@ EPHEMERIS_FIELDS: EphemerisFields = {
         "velZ",
     ],
     "GALILEO": [
+        "source",
         "clock_bias",
         "clock_drift",
         "clock_drift_rate",
