@@ -45,7 +45,7 @@ logger = setup_logging()
 
 def get_nav_files(year: int, doy: int) -> list[Path]:
     yy = str(year)[-2:]
-    files = list(NAV_DIR.glob(f"*BRDC*{year}*{doy:03d}*"))
+    files = list(NAV_DIR.glob(f"*BRDC*_{year}{doy:03d}0000_*"))
     files.extend(NAV_DIR.glob(f"brdc{doy:03d}0.{yy}*"))
     return files
 
