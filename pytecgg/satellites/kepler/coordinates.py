@@ -72,15 +72,6 @@ def _kepler_satellite_coordinates(
         raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
 
     data = ephem_dict[sv_id]
-    # prepare_ephemeris now stores a list of broadcast records per Keplerian SV.
-    # Pick the one nearest to obs_time when called with the full list.
-    if isinstance(data, list):
-        if not data:
-            return np.array([], dtype=float)
-        if obs_time is not None:
-            data = min(data, key=lambda r: abs(r["datetime"] - obs_time))
-        else:
-            data = data[len(data) // 2]
     if not _is_ephemeris_valid(data, sv_id, REQUIRED_KEYS):
         return np.array([], dtype=float)
 

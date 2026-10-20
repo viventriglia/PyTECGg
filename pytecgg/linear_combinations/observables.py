@@ -410,27 +410,3 @@ def select_observable_pair(
         obs_override=obs_override,
     )
 
-
-def retrieve_observable_pairs(
-    obs_data: pl.DataFrame,
-    system: str,
-    rinex_version: str,
-    prefer_by_suffix: bool = True,
-    df_for_counts: pl.DataFrame | None = None,
-    selection_mode: SelectionMode = "quality",
-    band_override: tuple[str, str] | None = None,
-) -> Optional[tuple[tuple[str, str], tuple[str, str]]]:
-    """
-    Backward-compatible wrapper returning only the selected phase/code observable names.
-    """
-    del prefer_by_suffix, df_for_counts
-    selection = select_observable_pair(
-        obs_data,
-        system=system,
-        rinex_version=rinex_version,
-        selection_mode=selection_mode,
-        band_override=band_override,
-    )
-    if selection is None:
-        return None
-    return (selection.phase1, selection.phase2), (selection.code1, selection.code2)
