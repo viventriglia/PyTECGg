@@ -24,3 +24,13 @@ def test_blank_field_in_first_record_does_not_shift_column(nav_v3_file, tmp_path
     )
     assert changed.select("epoch", "sv").rows() == [(first["epoch"], first["sv"])]
     assert changed["toe_right"][0] is None
+
+
+def test_zero_values_are_kept(nav_v3_file):
+    """Zero is a real value: GLONASS R11/R15 broadcast on channel 0 and must
+    keep it, or they are dropped from TEC."""
+    glonass = read_rinex_nav(nav_v3_file)["GLONASS"]
+    channels = glonass.filter(pl.col("sv").is_in(["11", "15"]))["channel"]
+    assert channels.len() > 0
+    assert channels.null_count() == 0
+    assert (channels == 0).all()
