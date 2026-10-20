@@ -13,7 +13,7 @@ The `satellites` module provides essential functions for GNSS orbit propagation 
 
 `prepare_ephemeris` now validates navigation records according to the orbit model actually used downstream:
 
-- **GPS, Galileo, BeiDou**: the function keeps every valid broadcast record per satellite, checking only the orbital fields strictly required for Keplerian position propagation. Position computation later selects the record whose `toe` is nearest to the observation epoch, since broadcast Keplerian parameters are only valid for ~±2 h around `toe` — reusing a single record across a multi-hour file would otherwise introduce 50–200 m biases. Records corrupted by the rinex-crate week-rollover `toe` parsing bug are filtered out and a warning is emitted.
+- **GPS, Galileo, BeiDou**: the function keeps every valid broadcast record per satellite, checking only the orbital fields strictly required for Keplerian position propagation. Position computation later selects the record whose `toe` is nearest to the observation epoch, since broadcast Keplerian parameters are only valid for ~±2 h around `toe` — reusing a single record across a multi-hour file would otherwise introduce 50–200 m biases. Records more than 4 h from the observation epoch are not used.
 - **GLONASS**: the full message history is retained because state-vector propagation needs the closest valid epoch and the FDMA channel.
 
 This means a navigation message is not discarded, as long as the orbital solution is still sufficient to compute satellite geometry.

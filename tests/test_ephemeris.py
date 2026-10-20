@@ -6,8 +6,6 @@ import polars as pl
 from pytecgg.context import GNSSContext
 from pytecgg.parsing import read_rinex_nav
 from pytecgg.satellites.ephemeris import (
-    _KEPLERIAN_CADENCE_S,
-    _drop_week_rollover_bug,
     _get_gps_time,
     prepare_ephemeris,
 )
@@ -54,59 +52,6 @@ def test_prepare_ephemeris_nav_v3(nav_v3_file):
         for record in eph:
             assert record["datetime"].tzinfo is not None
             assert record["constellation"] == "GPS"
-
-
-def _bad_row(epoch: datetime, cadence: float) -> dict:
-    return {"epoch": epoch, "toe": cadence}
-
-
-def _good_row(epoch: datetime, toe: float) -> dict:
-    return {"epoch": epoch, "toe": toe}
-
-
-def test_drop_week_rollover_bug_drops_corrupted_beidou_row():
-    """At BDT Sunday 00:00:00, toe = cadence is the rinex-crate bug signature."""
-    cadence = _KEPLERIAN_CADENCE_S["BEIDOU"]
-    rollover_sunday = datetime(2025, 1, 5, 0, 0, 0)  # Sunday 00:00:00
-    df = pl.DataFrame(
-        [
-            _bad_row(rollover_sunday, cadence),
-            _good_row(datetime(2025, 1, 5, 1, 0, 0), cadence),
-            _good_row(datetime(2025, 1, 5, 2, 0, 0), 7200.0),
-        ]
-    )
-
-    with pytest.warns(UserWarning, match="week rollover"):
-        out = _drop_week_rollover_bug(df, "BEIDOU", "C01")
-
-    assert out.height == 2
-    assert rollover_sunday not in out["epoch"].to_list()
-
-
-def test_drop_week_rollover_bug_leaves_other_records_alone():
-    """A toe equal to cadence on any non-rollover epoch must NOT be dropped."""
-    cadence = _KEPLERIAN_CADENCE_S["GALILEO"]
-    df = pl.DataFrame(
-        [
-            # Sunday but not at 00:00:00 -> keep
-            _bad_row(datetime(2025, 1, 5, 0, 10, 0), cadence),
-            # Monday at 00:00:00 -> keep (weekday() != 7)
-            _bad_row(datetime(2025, 1, 6, 0, 0, 0), cadence),
-        ]
-    )
-
-    out = _drop_week_rollover_bug(df, "GALILEO", "E01")
-
-    assert out.height == 2
-
-
-def test_drop_week_rollover_bug_noop_for_glonass():
-    """GLONASS has no cadence entry, so the filter is a no-op."""
-    df = pl.DataFrame([{"epoch": datetime(2025, 1, 5, 0, 0, 0), "toe": 600.0}])
-
-    out = _drop_week_rollover_bug(df, "GLONASS", "R01")
-
-    assert out.height == 1
 
 
 def test_prepare_ephemeris_populates_leap_seconds(nav_v3_file):

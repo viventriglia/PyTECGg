@@ -1,4 +1,3 @@
-import warnings
 from datetime import datetime
 from typing import Any
 
@@ -30,68 +29,6 @@ def _get_gps_time(dt: datetime) -> tuple[int, float]:
     return gps_week, gps_seconds
 
 
-# Broadcast ephemeris cadence (seconds) per Keplerian constellation, used to
-# detect a known rinex-crate parsing bug at the BDT/GST week rollover.
-_KEPLERIAN_CADENCE_S: dict[str, float] = {
-    "BEIDOU": 3600.0,
-    "GALILEO": 600.0,
-    "GPS": 7200.0,
-}
-
-
-def _drop_week_rollover_bug(
-    valid_data: pl.DataFrame, const_name: str, sv_id: str
-) -> pl.DataFrame:
-    """Drop ephemeris records corrupted by the rinex-crate (<=0.22) toe bug.
-
-    The crate misreads the toe field at the very first record of a new BDT/GST
-    week (toc seconds-of-week == 0), returning roughly one broadcast-cadence
-    step instead of 0.0. The misparse is not always exactly one cadence step:
-    GPS records at the 2021-01-03 rollover were observed with toe in
-    {7168, 7184, 7200} where the file says 0.0 (cadence 7200). The corrupted
-    record's Keplerian propagation is off by ~one cadence step, producing
-    ~26000 km position errors for GPS MEO, ~13000 km for BeiDou MEO and
-    ~2300 km for Galileo MEO.
-
-    Detection: at a genuine week-start record (toc at Sunday 00:00:00) the true
-    toe must be ~0, so any toe in the upper half of the cadence interval
-    (>= cadence/2) is a misparse. We drop such records and warn the caller;
-    propagation falls back to the next valid record.
-    """
-    cadence = _KEPLERIAN_CADENCE_S.get(const_name)
-    if cadence is None or "toe" not in valid_data.columns:
-        return valid_data
-
-    # At a true week-start record toe ~ 0; a misparse lands near a full cadence
-    # step (observed slightly below, e.g. 7168/7184 for GPS's 7200). Half the
-    # cadence is a safe separator: a legitimate first-of-week toe is nowhere
-    # near cadence/2.
-    mask_bad = (
-        (pl.col("epoch").dt.weekday() == 7)
-        & (pl.col("epoch").dt.hour() == 0)
-        & (pl.col("epoch").dt.minute() == 0)
-        & (pl.col("epoch").dt.second() == 0)
-        & (pl.col("toe") >= cadence / 2)
-    )
-    bad_count = valid_data.filter(mask_bad).height
-    if bad_count == 0:
-        return valid_data
-
-    bad_toes = sorted(
-        v for v in valid_data.filter(mask_bad)["toe"].unique().to_list()
-        if v is not None
-    )
-    warnings.warn(
-        f"Dropped {bad_count} {const_name} ephemeris record(s) for {sv_id} "
-        f"at BDT/GST week rollover: rinex-crate toe parsing bug returned "
-        f"toe={bad_toes}s where the file says 0.0s. Affected epoch(s) "
-        f"will fall back to the next valid record (~{cadence/60:.0f} min "
-        f"later) for position propagation.",
-        stacklevel=3,
-    )
-    return valid_data.filter(~mask_bad)
-
-
 def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     """
     Prepare ephemeris data from RINEX navigation data using the settings in GNSSContext.
@@ -102,9 +39,7 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     1.  Keplerian Orbits (GPS, Galileo, BeiDou):
         Keeps every valid broadcast record per satellite. Position computation
         later picks the record nearest to the observation epoch, since broadcast
-        Keplerian parameters are only valid for ~±2 h around toe. Records
-        corrupted by the rinex-crate week-rollover bug are filtered out (see
-        ``_drop_week_rollover_bug``).
+        Keplerian parameters are only valid for ~±2 h around toe.
 
     2.  State-Vector Orbits (GLONASS):
         All available ephemeris messages are collected for the satellite. This is
@@ -187,7 +122,6 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
                 position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
                 valid_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
-                valid_data = _drop_week_rollover_bug(valid_data, const_name, normalised_sat_id)
                 if valid_data.is_empty():
                     continue
 
