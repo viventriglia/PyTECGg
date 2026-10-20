@@ -3,7 +3,7 @@ from typing import Any, Literal
 
 import numpy as np
 
-from ..constants import DEFAULT_LEAP_SECONDS_UTC_GPST, GNSS_CONSTANTS
+from ..constants import GNSS_CONSTANTS
 from pytecgg.satellites.kepler.orbits import (
     _is_ephemeris_valid,
     _compute_time_elapsed,
@@ -95,7 +95,6 @@ def _kepler_satellite_coordinates(
             gps_week=data["gps_week"],
             toe=data["toe"],
             gnss_system=gnss_system,
-            leap_seconds=data.get("leap_seconds", DEFAULT_LEAP_SECONDS_UTC_GPST),
         )
 
         # Orbital parameters

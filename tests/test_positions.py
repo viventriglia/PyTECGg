@@ -1,12 +1,16 @@
 import datetime
 
 import numpy as np
+import pytest
 import polars as pl
 
 from pytecgg.satellites.kepler.orbits import _apply_geo_correction, _compute_anomalies
 from pytecgg.satellites import GNSS_CONSTANTS
 from pytecgg.satellites import positions as positions_module
 from pytecgg.satellites.positions import _pick_nearest_keplerian_record
+from pytecgg.context import GNSSContext
+from pytecgg.parsing import read_rinex_obs, read_rinex_nav
+from pytecgg.satellites import prepare_ephemeris, satellite_coordinates
 
 
 # def test_numerical_output(ephemeris_data):
@@ -132,3 +136,45 @@ def test_pick_nearest_keplerian_record_accepts_legacy_dict():
 def test_pick_nearest_keplerian_record_empty_list_returns_none():
     epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
     assert _pick_nearest_keplerian_record([], epoch) is None
+
+
+# Real-data check: geometry must match measured pseudoranges
+
+_C = 299_792_458.0
+
+
+@pytest.mark.parametrize(
+    "obs_file, nav_file, system, code, epoch",
+    [
+        ("GROT00ITA_R_20250950000_01D_30S_MO.crx", "BRDC00IGS_R_20250950000_01D_MN.rnx", "G", "C1C", "2025-04-05 05:00"),
+        ("GROT00ITA_R_20250950000_01D_30S_MO.crx", "BRDC00IGS_R_20250950000_01D_MN.rnx", "E", "C1C", "2025-04-05 05:00"),
+        ("GROT00ITA_R_20250950000_01D_30S_MO.crx", "BRDC00IGS_R_20250950000_01D_MN.rnx", "C", "C2I", "2025-04-05 05:00"),
+        ("BNEU00LAO_R_20250870000_01D_30S_MO.rnx", "BRDC00WRD_R_20250870000_01D_MN.rnx", "R", "C1C", "2025-03-28 08:00"),
+    ],
+)
+def test_positions_match_pseudoranges(test_data_dir, obs_file, nav_file, system, code, epoch):
+    """Pseudorange - range + sat clock is the receiver clock, common to all
+    satellites: its spread is tens of metres with correct geometry, while an
+    18 s time-scale error spreads it by several km."""
+    obs, rec_pos, version = read_rinex_obs(test_data_dir / "v3" / "obs" / obs_file)
+    nav = read_rinex_nav(test_data_dir / "v3" / "nav" / nav_file)
+    ctx = GNSSContext(receiver_pos=rec_pos, receiver_name="test", rinex_version=version, systems=[system])
+    ephem = prepare_ephemeris(nav, ctx)
+
+    t = datetime.datetime.fromisoformat(epoch).replace(tzinfo=datetime.timezone.utc)
+    obs_t = obs.filter(
+        (pl.col("epoch") == t) & pl.col("sv").str.starts_with(system) & (pl.col("observable") == code)
+    ).drop_nulls("value")
+    coords = satellite_coordinates(obs_t["sv"], obs_t["epoch"], ephem)
+    df = obs_t.join(coords.with_columns(pl.col("epoch").dt.replace_time_zone("UTC")), on=["sv", "epoch"])
+    df = df.filter(pl.col("sat_x").is_not_nan())
+    assert df.height >= 4
+
+    residuals = []
+    for row in df.iter_rows(named=True):
+        rec = min(ephem[row["sv"]], key=lambda r: abs(r["datetime"] - t))
+        sat_clock = rec["clock_bias"] + rec["clock_drift"] * (t - rec["datetime"]).total_seconds()
+        rng = np.linalg.norm(np.array([row["sat_x"], row["sat_y"], row["sat_z"]]) - rec_pos)
+        residuals.append(row["value"] - rng + _C * sat_clock)
+
+    assert np.std(residuals) < 200
