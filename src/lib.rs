@@ -137,20 +137,25 @@ fn read_rinex_nav(path: &str) -> PyResult<BTreeMap<String, PyDataFrame>> {
         let total_micros = (forced_epoch.to_duration_since_j1900().to_seconds() * 1_000_000.0) as i64;
         let ts = total_micros - UNIX_GPST_OFFSET_MICROS;
 
-        constellation_times.entry(constel.clone()).or_default().push(ts);
+        let times = constellation_times.entry(constel.clone()).or_default();
+        times.push(ts);
+        let current_len = times.len();
         constellation_svs.entry(constel.clone()).or_default().push(nav_key.sv.prn.to_string());
 
         let params_map = storage.entry(constel.clone()).or_default();
-        
-        params_map.entry("clock_bias".into()).or_default().push(Some(ephemeris.clock_bias));
-        params_map.entry("clock_drift".into()).or_default().push(Some(ephemeris.clock_drift));
-        params_map.entry("clock_drift_rate".into()).or_default().push(Some(ephemeris.clock_drift_rate));
+        // A column first seen at this record starts with nulls for all earlier records
+        let mut push = |key: String, value: f64| {
+            params_map.entry(key).or_insert_with(|| vec![None; current_len - 1]).push(Some(value));
+        };
+
+        push("clock_bias".into(), ephemeris.clock_bias);
+        push("clock_drift".into(), ephemeris.clock_drift);
+        push("clock_drift_rate".into(), ephemeris.clock_drift_rate);
 
         for (key, value) in &ephemeris.orbits {
-            params_map.entry(key.to_string()).or_default().push(Some(value.as_f64()));
+            push(key.to_string(), value.as_f64());
         }
 
-        let current_len = constellation_times.get(&constel).unwrap().len();
         for vec in params_map.values_mut() {
             if vec.len() < current_len {
                 vec.push(None);
