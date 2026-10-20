@@ -11,7 +11,6 @@ from .mw import _calculate_melbourne_wubbena
 from .observables import (
     SelectedSignalPair,
     SelectionMode,
-    select_observable_pair,
     select_observable_pair_from_pivot,
 )
 
@@ -291,35 +290,31 @@ def calculate_linear_combinations(
             )
             continue
 
-        selection = select_observable_pair(
-            obs_data,
-            system=system_,
-            rinex_version=ctx.rinex_version,
-            selection_mode=selection_mode,
-            band_override=normalised_overrides.get(system_),
-        )
-        if selection is None:
-            continue
-
-        required_cols = {
-            selection.phase1,
-            selection.phase2,
-            selection.code1,
-            selection.code2,
-        }
-
-        df_sys = df_sys.filter(pl.col("observable").is_in(required_cols))
-        if df_sys.is_empty():
-            continue
-
         df_pivot = df_sys.pivot(
             values="value",
             index=["epoch", "sv"],
             on="observable",
             aggregate_function="first",
         )
-        if not required_cols.issubset(df_pivot.columns):
+        selection = select_observable_pair_from_pivot(
+            df_pivot,
+            system=system_,
+            selection_mode=selection_mode,
+            band_override=normalised_overrides.get(system_),
+        )
+        if selection is None:
             continue
+
+        required_cols = [
+            selection.phase1,
+            selection.phase2,
+            selection.code1,
+            selection.code2,
+        ]
+        # Rows with none of the selected observables would read as loss of lock
+        df_pivot = df_pivot.select(["epoch", "sv", *required_cols]).filter(
+            pl.any_horizontal(pl.col(required_cols).is_not_null())
+        )
 
         if system_ == "R":
             if not ctx.glonass_channels:
