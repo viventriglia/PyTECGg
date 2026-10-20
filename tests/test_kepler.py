@@ -1,14 +1,12 @@
-import datetime
-
 import pytest
 from math import isclose, pi
+import numpy as np
 from numpy import sin
 
 from pytecgg.satellites.constants import BDT_OFFSET_FROM_GPST
 from pytecgg.satellites.kepler.orbits import (
     _compute_time_elapsed,
     _kepler,
-    _gpst_to_system_time,
 )
 
 
@@ -44,39 +42,28 @@ def test_kepler_close_to_parabolic():
     assert isclose(lhs, mk, abs_tol=0.01 * (pi / 648_000))
 
 
-# Time-system conversion (GPST obs epochs -> GPST/GST/BDT)
+def test_kepler_is_vectorized():
+    """Each element of an array input converges like its scalar counterpart."""
+    e = np.array([0.0, 0.1, 0.7])
+    mk = np.array([pi / 4, pi / 3, 2.0])
+    ek = _kepler(e, mk, tol=0.01)
+    assert np.allclose(ek - e * np.sin(ek), mk, atol=0.01 * (pi / 648_000))
+    assert _kepler(np.array([]), np.array([]), tol=0.01).size == 0
 
-_GPST_REF = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+
+# Time elapsed since toe (GPST obs epochs -> GPST/GST/BDT)
+
+# 2024-01-01 12:00:00 GPST is GPS week 2295, 129600 s of week
+_OBS_GPST_S = 2295 * 604_800 + 129_600.0
 
 
 @pytest.mark.parametrize("system", ["GPS", "GALILEO", "QZSS", None])
-def test_gpst_to_system_time_gpst_family_is_identity(system):
+def test_compute_time_elapsed_gpst_family_needs_no_shift(system):
     """Obs epochs are already GPST; GST and QZSST align with GPST."""
-    assert _gpst_to_system_time(_GPST_REF, system) == _GPST_REF
+    assert _compute_time_elapsed(_OBS_GPST_S, 2295, 129_600, gnss_system=system) == 0.0
 
 
-def test_gpst_to_system_time_beidou_subtracts_bdt_offset():
+def test_compute_time_elapsed_beidou_subtracts_bdt_offset():
     """BDT = GPST - BDT_OFFSET_FROM_GPST (14 s, fixed by BDS ICD)."""
-    out = _gpst_to_system_time(_GPST_REF, "BEIDOU")
-    assert (_GPST_REF - out).total_seconds() == BDT_OFFSET_FROM_GPST
-
-
-def test_compute_time_elapsed_beidou_offset_relative_to_gps():
-    """For the same GPST obs_time, BeiDou elapsed = GPS elapsed - 14 s."""
-    obs = datetime.datetime(2024, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    gps_week = 2295
-    toe = 129600
-
-    dt_gps = _compute_time_elapsed(obs, gps_week, toe, gnss_system="GPS")
-    dt_bdt = _compute_time_elapsed(obs, gps_week, toe, gnss_system="BEIDOU")
-
-    assert dt_gps - dt_bdt == BDT_OFFSET_FROM_GPST
-
-
-def test_compute_time_elapsed_naive_obs_is_treated_as_gpst():
-    """A tz-naive obs_time must be promoted, not raise; 2024-01-01 12:00 is toe."""
-    obs_naive = datetime.datetime(2024, 1, 1, 12, 0, 0)
-    gps_week = 2295
-    toe = 129600
-
-    assert _compute_time_elapsed(obs_naive, gps_week, toe, gnss_system="GPS") == 0.0
+    dt_bdt = _compute_time_elapsed(_OBS_GPST_S, 2295, 129_600, gnss_system="BEIDOU")
+    assert dt_bdt == -BDT_OFFSET_FROM_GPST

@@ -7,7 +7,6 @@ import polars as pl
 from pytecgg.satellites.kepler.orbits import _apply_geo_correction, _compute_anomalies
 from pytecgg.satellites import GNSS_CONSTANTS
 from pytecgg.satellites import positions as positions_module
-from pytecgg.satellites.positions import _pick_nearest_keplerian_record
 from pytecgg.context import GNSSContext
 from pytecgg.parsing import read_rinex_obs, read_rinex_nav
 from pytecgg.satellites import prepare_ephemeris, satellite_coordinates
@@ -56,20 +55,14 @@ def test_apply_geo_correction():
 def test_glonass_ephemeris_schema_preserves_string_fields(monkeypatch):
     captured = {}
 
-    def fake_compute_coordinates(sv_ids, epochs, ephem_data, coord_func, **kwargs):
-        captured["schema"] = ephem_data.schema
-        return pl.DataFrame(
-            {
-                "sv": sv_ids,
-                "epoch": epochs,
-                "sat_x": [0.0] * len(sv_ids),
-                "sat_y": [0.0] * len(sv_ids),
-                "sat_z": [0.0] * len(sv_ids),
-            }
+    def fake_state_vector_coordinates(df_joined, **kwargs):
+        captured["schema"] = df_joined.schema
+        return df_joined.select("sv", "epoch").with_columns(
+            sat_x=pl.lit(0.0), sat_y=pl.lit(0.0), sat_z=pl.lit(0.0)
         )
 
     monkeypatch.setattr(
-        positions_module, "_compute_coordinates", fake_compute_coordinates
+        positions_module, "_state_vector_coordinates", fake_state_vector_coordinates
     )
 
     epoch = pl.datetime(2023, 1, 1, 0, 0, 0, time_unit="us")
@@ -103,47 +96,34 @@ def test_glonass_ephemeris_schema_preserves_string_fields(monkeypatch):
     assert captured["schema"]["constellation"] == pl.String
 
 
-# _pick_nearest_keplerian_record
+# Choice of the broadcast record
 
 
-def _record(dt: datetime.datetime) -> dict:
-    return {"datetime": dt, "toe": 0.0}
+def test_satellite_coordinates_rejects_stale_records(nav_v3_file):
+    """This 2025 nav file holds only 2019 records for BeiDou C01; using them
+    put the satellite hundreds of km off, so it must get NaN instead."""
+    ctx = GNSSContext(receiver_pos=(0.0, 0.0, 0.0), receiver_name="test", rinex_version="3.04", systems=["C"])
+    ephem = prepare_ephemeris(read_rinex_nav(nav_v3_file), ctx)
+    assert max(r["datetime"] for r in ephem["C01"]).year == 2019
+
+    epoch = datetime.datetime(2025, 3, 28, 12, tzinfo=datetime.timezone.utc)
+    with pytest.warns(RuntimeWarning, match="C01"):
+        coords = satellite_coordinates(pl.Series(["C01"]), pl.Series([epoch]), ephem)
+    assert coords["sat_x"].is_nan().all()
 
 
-def test_pick_nearest_keplerian_record_chooses_closest():
-    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    records = [
-        _record(datetime.datetime(2025, 1, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)),
-        _record(datetime.datetime(2025, 1, 1, 11, 30, 0, tzinfo=datetime.timezone.utc)),
-        _record(datetime.datetime(2025, 1, 1, 14, 0, 0, tzinfo=datetime.timezone.utc)),
-    ]
+def test_satellite_coordinates_uses_nearest_record(nav_v3_file):
+    """Propagating from the record next to the epoch must match propagating
+    from that record alone."""
+    ctx = GNSSContext(receiver_pos=(0.0, 0.0, 0.0), receiver_name="test", rinex_version="3.04", systems=["G"])
+    ephem = prepare_ephemeris(read_rinex_nav(nav_v3_file), ctx)
+    sv = next(sv for sv, records in ephem.items() if len(records) >= 3)
+    nearest = ephem[sv][1]
+    epoch = nearest["datetime"] + datetime.timedelta(minutes=10)
 
-    chosen = _pick_nearest_keplerian_record(records, epoch)
-
-    assert chosen is records[1]
-
-
-def test_pick_nearest_keplerian_record_accepts_legacy_dict():
-    """Manually built single-dict ephem entries must still work."""
-    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    record = _record(datetime.datetime(2025, 1, 1, 10, 0, 0, tzinfo=datetime.timezone.utc))
-
-    chosen = _pick_nearest_keplerian_record(record, epoch)
-
-    assert chosen is record
-
-
-def test_pick_nearest_keplerian_record_empty_list_returns_none():
-    epoch = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    assert _pick_nearest_keplerian_record([], epoch) is None
-
-
-def test_pick_nearest_keplerian_record_rejects_stale_records():
-    """Real nav files can hold years-old records (e.g. BeiDou C01 from 2019 in
-    a 2025 file); using them puts the satellite hundreds of km off."""
-    epoch = datetime.datetime(2025, 3, 28, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    records = [_record(datetime.datetime(2019, 3, 26, 9, 0, 0, tzinfo=datetime.timezone.utc))]
-    assert _pick_nearest_keplerian_record(records, epoch) is None
+    from_all = satellite_coordinates(pl.Series([sv]), pl.Series([epoch]), ephem)
+    from_one = satellite_coordinates(pl.Series([sv]), pl.Series([epoch]), {sv: [nearest]})
+    assert from_all.select("sat_x", "sat_y", "sat_z").equals(from_one.select("sat_x", "sat_y", "sat_z"))
 
 
 # Real-data check: geometry must match measured pseudoranges

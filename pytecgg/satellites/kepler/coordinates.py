@@ -1,11 +1,9 @@
-import datetime
-from typing import Any, Literal
+from typing import Literal, Mapping
 
 import numpy as np
 
 from ..constants import GNSS_CONSTANTS
 from pytecgg.satellites.kepler.orbits import (
-    _is_ephemeris_valid,
     _compute_time_elapsed,
     _compute_anomalies,
     _apply_harmonic_corrections,
@@ -14,31 +12,29 @@ from pytecgg.satellites.kepler.orbits import (
 
 
 def _kepler_satellite_coordinates(
-    ephem_dict: dict[str, dict[str, Any]],
-    sv_id: str,
+    eph: Mapping[str, np.ndarray],
+    obs_gpst_s: np.ndarray,
     gnss_system: Literal["GPS", "GALILEO", "BEIDOU"],
-    obs_time: datetime.datetime | None = None,
 ) -> np.ndarray:
     """
-    Compute the Earth-Centered Earth-Fixed (ECEF) coordinates of a GNSS
-    satellite using Keplerian orbital model with broadcast ephemeris parameters.
+    Compute the Earth-Centered Earth-Fixed (ECEF) coordinates of GNSS
+    satellites using Keplerian orbital model with broadcast ephemeris parameters.
 
     Parameters
     ----------
-    ephem_dict : dict[str, dict[str, Any]]
-        Dictionary containing ephemeris data
-    sv_id : str
-        Satellite identifier (e.g., 'E23')
+    eph : Mapping[str, np.ndarray]
+        Broadcast ephemeris parameters, one array per field (gps_week, toe,
+        sqrta, deltaN, m0, e, omega, cuc, cus, crc, crs, cic, cis, i0, idot,
+        omega0, omegaDot), with one element per observation.
+    obs_gpst_s : np.ndarray
+        Observation times, in seconds since the GPS epoch (GPST)
     gnss_system : Literal["GPS", "GALILEO", "BEIDOU"]
         GNSS constellation
-    obs_time : datetime.datetime | None, optional
-        Optional observation time (datetime); if None, uses ephemeris timestamp
 
     Returns
     -------
     np.ndarray
-        A 3-element NumPy array with the satellite's ECEF position [X, Y, Z] in
-        meters; it returns an empty array if ephemeris data is invalid or incomplete
+        Array of shape (n, 3) with the satellites' ECEF positions [X, Y, Z] in meters
     """
     if gnss_system not in GNSS_CONSTANTS:
         raise ValueError(
@@ -48,99 +44,64 @@ def _kepler_satellite_coordinates(
     const = GNSS_CONSTANTS[gnss_system]
     gm, we = const.gm, const.we
 
-    REQUIRED_KEYS = {
-        "toe": "Time of Ephemeris",
-        "sqrta": "Square Root of Semi-Major Axis",
-        "deltaN": "Mean Motion Difference",
-        "m0": "Mean Anomaly at Reference Time",
-        "e": "Eccentricity",
-        "omega": "Argument of Perigee",
-        "cuc": "Latitude Cosine Harmonic Correction",
-        "cus": "Latitude Sine Harmonic Correction",
-        "crc": "Orbit Radius Cosine Harmonic Correction",
-        "crs": "Orbit Radius Sine Harmonic Correction",
-        "cic": "Inclination Cosine Harmonic Correction",
-        "cis": "Inclination Sine Harmonic Correction",
-        "i0": "Inclination at Reference Time",
-        "idot": "Rate of Inclination Angle",
-        "omega0": "Longitude of Ascending Node",
-        "omegaDot": "Rate of Right Ascension",
-        "datetime": "Observation datetime",
-    }
+    # Core computations
+    A = eph["sqrta"] ** 2
+    n0 = np.sqrt(gm / (A**3))
+    tk = _compute_time_elapsed(
+        obs_gpst_s,
+        gps_week=eph["gps_week"],
+        toe=eph["toe"],
+        gnss_system=gnss_system,
+    )
 
-    if sv_id not in ephem_dict:
-        raise KeyError(f"Satellite {sv_id} not found in ephemeris data")
+    # Orbital parameters
+    n = n0 + eph["deltaN"]
+    Mk, Ek, vk = _compute_anomalies(eph["e"], eph["m0"], n, tk)
 
-    data = ephem_dict[sv_id]
-    if not _is_ephemeris_valid(data, sv_id, REQUIRED_KEYS):
-        return np.array([], dtype=float)
+    # Harmonic corrections
+    Phik = np.fmod(vk + eph["omega"], 2 * np.pi)
+    delta_uk, delta_rk, delta_ik = _apply_harmonic_corrections(
+        Phik,
+        eph["cuc"],
+        eph["cus"],
+        eph["crc"],
+        eph["crs"],
+        eph["cic"],
+        eph["cis"],
+    )
 
-    computation_time = obs_time if obs_time is not None else data["datetime"]
+    # Corrected orbital parameters
+    uk = np.fmod(Phik + delta_uk, 2 * np.pi)
+    rk = A * (1 - eph["e"] * np.cos(Ek)) + delta_rk
+    ik = eph["i0"] + eph["idot"] * tk + delta_ik
 
-    try:
-        # Core computations
-        A = data["sqrta"] ** 2
-        n0 = np.sqrt(gm / (A**3))
-        tk = _compute_time_elapsed(
-            computation_time,
-            gps_week=data["gps_week"],
-            toe=data["toe"],
-            gnss_system=gnss_system,
-        )
+    # BeiDou GEO satellites are propagated in an inertial frame first,
+    # then rotated to ECEF by _apply_geo_correction below (BDS ICD B1I
+    # §5.2.4.12). Other Keplerian sats fold the ECEF rotation into lamk
+    # via the -we*tk term.
+    is_beidou_geo = (gnss_system == "BEIDOU") & (eph["i0"] <= 20 * (np.pi / 180))
 
-        # Orbital parameters
-        n = n0 + data["deltaN"]
-        Mk, Ek, vk = _compute_anomalies(data["e"], data["m0"], n, tk)
+    # Longitude of ascending node
+    lamk = np.fmod(
+        eph["omega0"]
+        + (eph["omegaDot"] - np.where(is_beidou_geo, 0.0, we)) * tk
+        - we * eph["toe"],
+        2 * np.pi,
+    )
 
-        # Harmonic corrections
-        Phik = np.fmod(vk + data["omega"], 2 * np.pi)
-        delta_uk, delta_rk, delta_ik = _apply_harmonic_corrections(
-            Phik,
-            data["cuc"],
-            data["cus"],
-            data["crc"],
-            data["crs"],
-            data["cic"],
-            data["cis"],
-        )
+    # Position in orbital plane
+    xDash, yDash = rk * np.cos(uk), rk * np.sin(uk)
 
-        # Corrected orbital parameters
-        uk = np.fmod(Phik + delta_uk, 2 * np.pi)
-        rk = A * (1 - data["e"] * np.cos(Ek)) + delta_rk
-        ik = data["i0"] + data["idot"] * tk + delta_ik
+    # ECEF coordinates
+    Xk = xDash * np.cos(lamk) - yDash * np.cos(ik) * np.sin(lamk)
+    Yk = xDash * np.sin(lamk) + yDash * np.cos(ik) * np.cos(lamk)
+    Zk = yDash * np.sin(ik)
 
-        # BeiDou GEO satellites are propagated in an inertial frame first,
-        # then rotated to ECEF by _apply_geo_correction below (BDS ICD B1I
-        # §5.2.4.12). Other Keplerian sats fold the ECEF rotation into lamk
-        # via the -we*tk term.
-        is_beidou_geo = gnss_system == "BEIDOU" and data["i0"] <= 20 * (np.pi / 180)
-
-        # Longitude of ascending node
-        if is_beidou_geo:
-            lamk = np.fmod(
-                data["omega0"] + data["omegaDot"] * tk - we * data["toe"],
-                2 * np.pi,
-            )
-        else:
-            lamk = np.fmod(
-                data["omega0"] + (data["omegaDot"] - we) * tk - we * data["toe"],
-                2 * np.pi,
-            )
-
-        # Position in orbital plane
-        xDash, yDash = rk * np.cos(uk), rk * np.sin(uk)
-
-        # ECEF coordinates
-        Xk = xDash * np.cos(lamk) - yDash * np.cos(ik) * np.sin(lamk)
-        Yk = xDash * np.sin(lamk) + yDash * np.cos(ik) * np.cos(lamk)
-        Zk = yDash * np.sin(ik)
-
-        if is_beidou_geo:
-            Xk, Yk, Zk = _apply_geo_correction(Xk, Yk, Zk, tk, we)
-
-        return np.array([Xk, Yk, Zk], dtype=float)
-
-    except Exception as e:
-        raise RuntimeError(
-            f"{gnss_system} position computation failed for {sv_id}: {str(e)}"
-        )
+    Xg, Yg, Zg = _apply_geo_correction(Xk, Yk, Zk, tk, we)
+    return np.column_stack(
+        [
+            np.where(is_beidou_geo, Xg, Xk),
+            np.where(is_beidou_geo, Yg, Yk),
+            np.where(is_beidou_geo, Zg, Zk),
+        ]
+    )
