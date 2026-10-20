@@ -4,7 +4,7 @@ The `parsing` module is the entry point for data ingestion in `PyTECGg`. It leve
 
 * Format detection: support for standard `.rnx`, Hatanaka-compressed `.crx`, and gz-ipped `.gz` files.
 * Metadata extraction: retrieval of the receiver ECEF position and RINEX version.
-* Timezone normalization: epochs are automatically converted to UTC to ensure consistency across different GNSS datasets.
+* Epochs: returned as written in the file, with the UTC time zone attached but no time-scale shift. Observation epochs stay on the GPST grid; navigation epochs stay in each constellation's own time (e.g. UTC for GLONASS). Satellite position computation handles the conversion (see [Satellites & Geometry](satellites.md#time-systems-and-leap-seconds)).
 
 ---
 
