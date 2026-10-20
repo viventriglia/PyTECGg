@@ -88,31 +88,9 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 continue
 
             if is_state_vector:
-                # GLONASS: Logic for state-vector models requires the full history
+                # GLONASS: state-vector propagation needs the full history
                 sat_data = sat_data.sort("epoch")
-
-                # Extract FDMA channel
-                channel_val = sat_data.get_column("channel")[0]
-                ctx.glonass_channels[normalised_sat_id] = channel_val
-
-                sat_ephems_list = []
-                for row in sat_data.to_dicts():
-                    ephe_time = row["epoch"]
-                    gps_week, gps_sec = _get_gps_time(ephe_time)
-
-                    ephem = {
-                        "constellation": const_name,
-                        "sv": normalised_sat_id,
-                        "datetime": ephe_time,
-                        "gps_week": gps_week,
-                        "gps_seconds": gps_sec,
-                        "leap_seconds": leap_seconds,
-                        **{field: row.get(field) for field in params.fields},
-                    }
-                    sat_ephems_list.append(ephem)
-
-                ephem_dict[normalised_sat_id] = sat_ephems_list
-
+                ctx.glonass_channels[normalised_sat_id] = sat_data.get_column("channel")[0]
             else:
                 # Keplerian models (GPS, Galileo, BeiDou): keep every valid record
                 # so the caller can pick the one nearest to the observation epoch.
@@ -121,26 +99,24 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
                 # Validate only on fields required for position computation, not all EPHEMERIS_FIELDS
                 # (e.g. bgdE5bE1 for Galileo may be absent for I/NAV-only satellites).
                 position_fields = [f for f in KEPLERIAN_POSITION_FIELDS if f in sat_data.columns]
-                valid_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
-                if valid_data.is_empty():
+                sat_data = sat_data.drop_nulls(subset=position_fields).sort("epoch")
+                if sat_data.is_empty():
                     continue
 
-                sat_ephems_list = []
-                for row in valid_data.to_dicts():
-                    ephe_time = row["epoch"]
-                    gps_week, gps_sec = _get_gps_time(ephe_time)
-
-                    ephem = {
+            sat_ephems_list = []
+            for row in sat_data.to_dicts():
+                gps_week, gps_sec = _get_gps_time(row["epoch"])
+                sat_ephems_list.append(
+                    {
                         "constellation": const_name,
                         "sv": normalised_sat_id,
-                        "datetime": ephe_time,
+                        "datetime": row["epoch"],
                         "gps_week": gps_week,
                         "gps_seconds": gps_sec,
                         "leap_seconds": leap_seconds,
                         **{field: row.get(field) for field in params.fields},
                     }
-                    sat_ephems_list.append(ephem)
-
-                ephem_dict[normalised_sat_id] = sat_ephems_list
+                )
+            ephem_dict[normalised_sat_id] = sat_ephems_list
 
     return ephem_dict

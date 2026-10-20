@@ -164,40 +164,6 @@ def _gg_calibration(
     return {arc_id: bias for arc_id, bias in zip(list_all_used_arcs, arc_biases)}
 
 
-def _estimate_bias(
-    df: pl.DataFrame,
-    receiver_position: tuple[float, float, float],
-    max_degree: int,
-    n_epochs: int,
-    h_ipp: float,
-) -> dict[str, float]:
-    """
-    Estimate arc-level TEC biases. The function preprocesses the data, computes vTEC,
-    mapping function and MoDip parameters, then applies a calibration procedure to
-    estimate biases per arc.
-
-    Parameters
-    ----------
-    df : pl.DataFrame
-        Input DataFrame with GNSS observations.
-    receiver_position : tuple[float, float, float]
-        Receiver position in ECEF coordinates (x, y, z) [meters].
-    max_degree : int, optional
-        Maximum degree of polynomial expansion.
-    n_epochs : int, optional
-        Number of epochs per batch for calibration.
-    h_ipp : float, optional
-        Height of the IPP [m].
-
-    Returns
-    -------
-    dict[str, float]
-        Dictionary mapping arc identifiers to estimated biases.
-    """
-    df_clean = _preprocessing(df, receiver_position=receiver_position, h_ipp=h_ipp)
-    return _gg_calibration(df_clean, batch_length_mins=n_epochs, max_degree=max_degree)
-
-
 def _estimate_veq_batches(
     df_clean: pl.DataFrame,
     max_degree: int = 3,
@@ -316,12 +282,9 @@ def calculate_tec(
             ]
         )
 
-    offset_by_arc = _estimate_bias(
-        df=df,
-        receiver_position=ctx.receiver_pos,
-        max_degree=max_polynomial_degree,
-        n_epochs=batch_size_epochs,
-        h_ipp=ctx.h_ipp,
+    df_clean = _preprocessing(df, receiver_position=ctx.receiver_pos, h_ipp=ctx.h_ipp)
+    offset_by_arc = _gg_calibration(
+        df_clean, batch_length_mins=batch_size_epochs, max_degree=max_polynomial_degree
     )
 
     map_ = pl.DataFrame(
