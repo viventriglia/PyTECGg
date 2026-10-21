@@ -81,18 +81,21 @@ def run_calibration_pipeline(
     ephem_dict = prepare_ephemeris(nav_dict, ctx=ctx)
     df_lc = calculate_linear_combinations(df_obs, ctx=ctx, selection_mode="quality")
 
-    df_arcs = extract_arcs(
-        df=df_lc,
+    # Elevation cut before arc extraction, so arc lengths and the levelling
+    # offset only see samples above MIN_ELEVATION
+    df_coords = satellite_coordinates(df_lc["sv"], df_lc["epoch"], ephem_dict)
+    df_geom = df_lc.join(df_coords, on=["sv", "epoch"], how="left")
+    df_ipp = calculate_ipp(df_geom, ctx=ctx, min_elevation=MIN_ELEVATION)
+
+    df_final = extract_arcs(
+        df=df_ipp,
         ctx=ctx,
         threshold_abs=ARC_THRESHOLD_ABS,
         threshold_std=ARC_THRESHOLD_STD,
         threshold_jump=ARC_THRESHOLD_JUMP,
         min_arc_length=ARC_MIN_LENGTH,
+        level_weighting="sin2",
     )
-
-    df_coords = satellite_coordinates(df_arcs["sv"], df_arcs["epoch"], ephem_dict)
-    df_geom = df_arcs.join(df_coords, on=["sv", "epoch"], how="left")
-    df_final = calculate_ipp(df_geom, ctx=ctx, min_elevation=MIN_ELEVATION)
 
     df_tec = calculate_tec(df_final, ctx=ctx)
     df_veq = calculate_vertical_equivalent(df_tec, ctx=ctx)

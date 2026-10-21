@@ -371,6 +371,50 @@ def test_extract_arcs_accepts_per_satellite_beidou_freq_meta():
     assert result.filter(pl.col("id_arc_valid").is_not_null()).height == 6
 
 
+def _levelling_input():
+    ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
+    ctx.freq_meta["G"] = (1575.42, 1227.60)
+    epochs = [datetime(2023, 1, 1, 0, 0, 30 * i) for i in range(2)] + [
+        datetime(2023, 1, 1, 0, 1, 0)
+    ]
+    # phase - code = [-1, -1, -4]: the low-elevation sample is the outlier
+    df = pl.DataFrame(
+        {
+            "epoch": epochs,
+            "sv": ["G01"] * 3,
+            "gflc_phase": [10.0, 10.0, 10.0],
+            "gflc_code": [11.0, 11.0, 14.0],
+            "mw": [1.0, 1.0, 1.0],
+            "ele": [90.0, 90.0, 30.0],
+        }
+    )
+    return df, ctx
+
+
+def test_extract_arcs_sin2_levelling_downweights_low_elevation():
+    df, ctx = _levelling_input()
+    kw = dict(min_arc_length=1, max_gap=timedelta(minutes=1), threshold_jump=100.0)
+
+    plain = extract_arcs(df, ctx, **kw)
+    sin2 = extract_arcs(df, ctx, level_weighting="sin2", **kw)
+
+    # plain mean offset = -2; sin² weights (1, 1, 0.25) give offset = -3/2.25 = -4/3
+    assert plain["gflc_levelled"][0] == pytest.approx(12.0)
+    assert sin2["gflc_levelled"][0] == pytest.approx(10.0 + (1 + 1 + 0.25 * 4) / 2.25)
+
+
+def test_extract_arcs_sin2_levelling_requires_ele():
+    df, ctx = _levelling_input()
+    with pytest.raises(ValueError, match="ele"):
+        extract_arcs(
+            df.drop("ele"),
+            ctx,
+            min_arc_length=1,
+            max_gap=timedelta(minutes=1),
+            level_weighting="sin2",
+        )
+
+
 def test_obs_overrides_force_exact_phase_and_code_observables():
     ctx = GNSSContext((0.0, 0.0, 0.0), "TEST", "3.04", systems=["G"])
     obs_df = pl.DataFrame(
