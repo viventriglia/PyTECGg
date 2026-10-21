@@ -101,11 +101,16 @@ def read_rinex_nav(path: Union[str, Path]) -> dict[str, pl.DataFrame]:
     -------
     dict[str, pl.DataFrame]
         Dictionary keyed by constellation (e.g., 'GPS'), containing
-        DataFrames with 'epoch' as datetime[μs, UTC] and orbital parameters.
+        DataFrames with 'epoch' as datetime[μs, UTC], orbital parameters and
+        'leap_seconds' from the file header (null if the header has none).
     """
     path_str = str(path)
     nav_dict = _read_rinex_nav(path_str)
+    leap_seconds = read_rinex_nav_header(path)["leap_seconds"]
     return {
-        const: df.with_columns(pl.col("epoch").dt.replace_time_zone("UTC"))
+        const: df.with_columns(
+            pl.col("epoch").dt.replace_time_zone("UTC"),
+            pl.lit(leap_seconds, dtype=pl.Int64).alias("leap_seconds"),
+        )
         for const, df in nav_dict.items()
     }

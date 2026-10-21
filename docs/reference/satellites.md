@@ -20,7 +20,13 @@ This means a navigation message is not discarded, as long as the orbital solutio
 
 ### Time Systems and Leap Seconds
 
-Each broadcast record carries a `leap_seconds` field (UTC → GPST offset). The value is taken from the RINEX nav header via [`read_rinex_nav_header`][pytecgg.parsing.read_rinex_nav_header] (assigned to `GNSSContext.leap_seconds`) or falls back to `DEFAULT_LEAP_SECONDS_UTC_GPST` from `pytecgg.satellites.constants`. Observation epochs from `read_rinex_obs` are on the GPST grid. During position computation they are shifted into the constellation's own time system before the elapsed time from the ephemeris epoch is computed: no shift for GPS / Galileo / QZSS, BDT for BeiDou (BDT = GPST − 14 s), and UTC for GLONASS (UTC = GPST − `leap_seconds`).
+Each broadcast record carries a `leap_seconds` field (UTC → GPST offset), chosen in this order:
+
+1. `GNSSContext.leap_seconds`, if set (an explicit override).
+2. The `LEAP SECONDS` field of the nav file header, which `read_rinex_nav` adds as a `leap_seconds` column. Nav files written after a new leap second carry the new value, so this follows future changes without a `PyTECGg` update. Files merged from several days keep each file's value.
+3. The leap-second table `LEAP_SECONDS_UTC_GPST` in `pytecgg.satellites.constants`, for the record date, when the header has no `LEAP SECONDS` line (the field is optional). The table is checked against IERS Bulletin C up to `LEAP_SECONDS_VALID_UNTIL`; for later records a warning says the value may be stale.
+
+Observation epochs from `read_rinex_obs` are on the GPST grid. During position computation they are shifted into the constellation's own time system before the elapsed time from the ephemeris epoch is computed: no shift for GPS / Galileo / QZSS, BDT for BeiDou (BDT = GPST − 14 s), and UTC for GLONASS (UTC = GPST − `leap_seconds`).
 
 ---
 

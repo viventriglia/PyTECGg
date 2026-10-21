@@ -1,3 +1,5 @@
+import bisect
+import warnings
 from datetime import datetime
 from typing import Any
 
@@ -5,9 +7,10 @@ import polars as pl
 
 from .constants import (
     CONSTELLATION_PARAMS,
-    DEFAULT_LEAP_SECONDS_UTC_GPST,
     GPS_EPOCH,
     KEPLERIAN_POSITION_FIELDS,
+    LEAP_SECONDS_UTC_GPST,
+    LEAP_SECONDS_VALID_UNTIL,
 )
 from pytecgg.context import GNSSContext
 
@@ -29,6 +32,21 @@ def _get_gps_time(dt: datetime) -> tuple[int, float]:
     return gps_week, gps_seconds
 
 
+def _leap_seconds_at(epoch: datetime) -> int:
+    """UTC -> GPST leap seconds at `epoch`, from the table in constants.py."""
+    day = epoch.date()
+    if day >= LEAP_SECONDS_VALID_UNTIL:
+        warnings.warn(
+            f"Leap seconds for nav records from {LEAP_SECONDS_VALID_UNTIL} on are "
+            "past the built-in table and the nav header has no LEAP SECONDS value: "
+            "assuming no new leap second. Set GNSSContext.leap_seconds if one was "
+            "announced.",
+            stacklevel=3,
+        )
+    i = bisect.bisect_right([start for start, _ in LEAP_SECONDS_UTC_GPST], day)
+    return LEAP_SECONDS_UTC_GPST[i - 1][1] if i else 0
+
+
 def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     """
     Prepare ephemeris data from RINEX navigation data using the settings in GNSSContext.
@@ -47,10 +65,10 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
         velocity/acceleration) valid only for short periods (typically ± 15 minutes),
         requiring numerical integration from the closest epoch.
 
-    Each record carries the ``leap_seconds`` value taken from
-    ``ctx.leap_seconds`` (populated from the RINEX nav header via
-    :func:`pytecgg.parsing.read_rinex_nav_header`) or
-    ``DEFAULT_LEAP_SECONDS_UTC_GPST`` when the context does not provide one.
+    Each record carries a ``leap_seconds`` value (UTC -> GPST), taken from
+    ``ctx.leap_seconds`` if set, else from the nav header LEAP SECONDS field
+    (the ``leap_seconds`` column added by :func:`pytecgg.parsing.read_rinex_nav`),
+    else from the leap-second table for the record date.
 
     Parameters
     ----------
@@ -67,9 +85,6 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     """
     ephem_dict: Ephem = {}
     inverse_map = ctx.symbol_to_name
-    leap_seconds = (
-        ctx.leap_seconds if ctx.leap_seconds is not None else DEFAULT_LEAP_SECONDS_UTC_GPST
-    )
 
     for symbol_ in ctx.systems:
         const_name = inverse_map.get(symbol_)
@@ -113,6 +128,13 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
             sat_ephems_list = []
             for row in sat_data.to_dicts():
                 gps_week, gps_sec = _get_gps_time(row["epoch"])
+                leap_seconds = (
+                    ctx.leap_seconds
+                    if ctx.leap_seconds is not None
+                    else row.get("leap_seconds")
+                )
+                if leap_seconds is None:
+                    leap_seconds = _leap_seconds_at(row["epoch"])
                 sat_ephems_list.append(
                     {
                         "constellation": const_name,
