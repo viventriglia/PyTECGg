@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 import warnings
 
 SUPPORTED_SYSTEMS = {
@@ -43,6 +43,10 @@ class GNSSContext:
     freq_meta : dict[str, Any]
         Additional metadata related to signal
         frequencies and observation types used during processing.
+    leap_seconds : int, optional
+        UTC -> GPST offset in seconds. Typically populated from the RINEX
+        navigation header; falls back to ``DEFAULT_LEAP_SECONDS_UTC_GPST``
+        from ``constants.py`` when left unset.
 
     Notes
     -----
@@ -75,6 +79,10 @@ class GNSSContext:
     systems: list[str] = field(default_factory=list)
     glonass_channels: dict[str, int] = field(default_factory=dict)
     freq_meta: dict[str, Any] = field(default_factory=dict)
+    # UTC -> GPST offset in seconds. Populate from the RINEX nav header via
+    # parsing.read_rinex_nav_header(). Falls back to DEFAULT_LEAP_SECONDS_UTC_GPST
+    # in constants.py if left unset.
+    leap_seconds: Optional[int] = None
 
     def __post_init__(self):
         if (

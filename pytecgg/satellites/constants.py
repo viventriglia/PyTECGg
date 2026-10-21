@@ -279,3 +279,13 @@ TOL_KEPLER: float = 0.001
 
 # Earth radius in meters
 RE: float = 6371000.0
+
+# Default leap-second count (UTC -> GPST) used when the RINEX header does not
+# carry a LEAP SECONDS field. Current as of IERS Bulletin C (last leap second
+# 2017-01-01). Override at runtime via GNSSContext.leap_seconds, populated from
+# read_rinex_nav_header().
+DEFAULT_LEAP_SECONDS_UTC_GPST: int = 18
+
+# BeiDou time (BDT) trails GPST by a fixed 14 s (BDS ICD, BDT epoch 2006-01-01).
+# This is a constant defined by the ICD and never changes.
+BDT_OFFSET_FROM_GPST: int = 14

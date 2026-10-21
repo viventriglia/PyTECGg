@@ -40,7 +40,7 @@ This package is designed for researchers and engineers who need speed and reliab
 
 !!! info "Citing `PyTECGg`"
     If you use `PyTECGg` for your research, please cite
-    [*PyTECGg: Total Electron Content reconstruction with GNSS data*](https://dx.doi.org/10.2139/ssrn.6549526) (preprint) by V. Ventriglia, M. Guerra, D. Okoh, P. Vermicelli, L. Ciraolo, and C. Cesaroni.
+    [*PyTECGg: total electron content calibration with GNSS data*](https://doi.org/10.1016/j.softx.2026.102737) by V. Ventriglia, M. Guerra, D. Okoh, P. Vermicelli, L. Ciraolo, and C. Cesaroni.
 
 ## Get started
 

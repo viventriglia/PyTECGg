@@ -19,3 +19,4 @@ The `parsing` module is the entry point for data ingestion in `PyTECGg`. It leve
       members:
         - read_rinex_obs
         - read_rinex_nav
+        - read_rinex_nav_header
