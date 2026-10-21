@@ -61,3 +61,17 @@ def test_sv_ids_use_standard_format(parsed_rinex_obs_data):
     sv = parsed_rinex_obs_data["obs_data"]["sv"].unique()
     assert "S23" in sv.to_list()
     assert sv.str.contains(r"^[A-Z]\d{2}$").all()
+
+
+def test_malformed_leap_seconds_line_is_ignored(obs_v3_file, tmp_path):
+    """rinex 0.24 panics on a short LEAP SECONDS line (REDZ00POL 2024-224 has
+    "    18  2326     7", the future field missing); the reader drops that line."""
+    text = open(obs_v3_file, encoding="ascii").read()
+    good = "    18    18  1929     7                                    LEAP SECONDS"
+    bad = "    18  1929     7                                          LEAP SECONDS"
+    assert good in text
+    path = tmp_path / "ASIR00ITA_R_20242810000_01D_30S_MO.rnx"
+    path.write_text(text.replace(good, bad), encoding="ascii")
+    df, pos, version = read_rinex_obs(str(path))
+    expected = read_rinex_obs(obs_v3_file)
+    assert df.equals(expected[0]) and (pos, version) == expected[1:]

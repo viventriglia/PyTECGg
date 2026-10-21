@@ -4,26 +4,54 @@ use rinex::prelude::*;
 use polars::prelude::*;
 use std::path::Path;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Cursor, Read};
+use flate2::read::GzDecoder;
 
 /// Constant offset between J1900 (hifitime default) and Unix Epoch (1970) in microseconds,
 /// including the 19s constant offset between TAI and GPST.
 /// This ensures RINEX epochs align with the "round" 00/30s grid in Polars/Unix time.
 const UNIX_GPST_OFFSET_MICROS: i64 = 2_208_988_819_000_000;
 
-/// Helper function to read a RINEX file (supports regular, compressed, and gzipped RINEX files)
-fn _parse_file<P: AsRef<Path>>(path: P) -> Result<Rinex, ParsingError> {
-    let path = path.as_ref();
-
-    // 1. Try with gzip, if file has .gz extension
-    if path.extension().map_or(false, |ext| ext == "gz") {
-        if let Ok(rinex) = Rinex::from_gzip_file(path) {
-            return Ok(rinex);
+/// Parse a RINEX stream, dropping the LEAP SECONDS header line first.
+/// rinex 0.24 panics on short LEAP SECONDS lines (e.g. "    18  2326     7");
+/// pytecgg never uses that field (nav leap seconds come from read_rinex_nav_header).
+fn _parse_reader<R: Read>(reader: R) -> Result<Rinex, ParsingError> {
+    let mut reader = BufReader::new(reader);
+    let mut header = Vec::new();
+    let mut line = Vec::new();
+    while reader.read_until(b'\n', &mut line)? > 0 {
+        let label = line.get(60..).unwrap_or_default();
+        let end = label.starts_with(b"END OF HEADER");
+        if !label.starts_with(b"LEAP SECONDS") {
+            header.extend_from_slice(&line);
         }
-        // If gzip fails, continue to try regular parsing
+        line.clear();
+        if end {
+            break;
+        }
     }
+    Rinex::parse(&mut BufReader::new(Cursor::new(header).chain(reader)))
+}
 
-    // 2. Try regular file parsing (works for both .rnx and .crx)
-    Rinex::from_file(path)
+/// Helper function to read a RINEX file (supports regular, compressed, and gzipped RINEX files)
+fn _parse_file<P: AsRef<Path>>(path: P) -> Result<Rinex, String> {
+    let path = path.as_ref();
+    // A crate panic would surface as a BaseException that `except Exception` misses
+    std::panic::catch_unwind(|| {
+        // 1. Try with gzip, if file has .gz extension
+        if path.extension().map_or(false, |ext| ext == "gz") {
+            if let Ok(rinex) = _parse_reader(GzDecoder::new(File::open(path)?)) {
+                return Ok(rinex);
+            }
+            // If gzip fails, continue to try regular parsing
+        }
+
+        // 2. Try regular file parsing (works for both .rnx and .crx)
+        _parse_reader(File::open(path)?)
+    })
+    .map_err(|_| "the rinex crate panicked while parsing this file".to_string())?
+    .map_err(|e| e.to_string())
 }
 
 
