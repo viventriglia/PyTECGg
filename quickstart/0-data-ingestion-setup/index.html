@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1042,8 +1042,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.parsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_rinex_nav</span><span class="p">,</span> <span class="n">read_rinex_obs</span>
 
 <span class="c1"># Define paths to your local files</span>
-<span class="n">NAV_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./path/to/your/nav_file.rnx&quot;</span><span class="p">)</span>
-<span class="n">OBS_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./path/to/your/obs_file.rnx&quot;</span><span class="p">)</span>
+<span class="n">NAV_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"./path/to/your/nav_file.rnx"</span><span class="p">)</span>
+<span class="n">OBS_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"./path/to/your/obs_file.rnx"</span><span class="p">)</span>
 
 <span class="c1"># Load navigation data</span>
 <span class="n">nav_dict</span> <span class="o">=</span> <span class="n">read_rinex_nav</span><span class="p">(</span><span class="n">NAV_PATH</span><span class="p">)</span>
@@ -1067,7 +1067,7 @@
     <span class="n">receiver_name</span><span class="o">=</span><span class="n">rec_name</span><span class="p">,</span>
     <span class="n">rinex_version</span><span class="o">=</span><span class="n">rinex_version</span><span class="p">,</span>
     <span class="n">h_ipp</span><span class="o">=</span><span class="mi">350_000</span><span class="p">,</span>
-    <span class="n">systems</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">],</span>
+    <span class="n">systems</span><span class="o">=</span><span class="p">[</span><span class="s1">'G'</span><span class="p">,</span> <span class="s1">'E'</span><span class="p">],</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>Context parameters are:</p>
@@ -1132,10 +1132,10 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_obs_ring</span>
 
 <span class="n">download_obs_ring</span><span class="p">(</span>
-    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;GRO2&quot;</span><span class="p">,</span>
+    <span class="n">station_code</span><span class="o">=</span><span class="s2">"GRO2"</span><span class="p">,</span>
     <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
     <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./data"</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>The function creates a subdirectory named after the <code>station_code</code> under the provided <code>output_path</code>. The above example will produce the following structure:</p>
@@ -1151,10 +1151,10 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_obs_euref</span>
 
 <span class="n">download_obs_euref</span><span class="p">(</span>
-    <span class="n">station_code</span><span class="o">=</span><span class="s2">&quot;BRUX&quot;</span><span class="p">,</span>
+    <span class="n">station_code</span><span class="o">=</span><span class="s2">"BRUX"</span><span class="p">,</span>
     <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
     <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./data"</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>The function creates a subdirectory named after the <code>station_code</code> under the provided <code>output_path</code>. The above example will produce a structure like:</p>
@@ -1172,7 +1172,7 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
 <span class="n">download_nav_bkg</span><span class="p">(</span>
     <span class="n">year</span><span class="o">=</span><span class="mi">2025</span><span class="p">,</span>
     <span class="n">doys</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">252</span><span class="p">],</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./data&quot;</span><span class="p">)</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./data"</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>The RINEX files are saved under the provided <code>output_path</code>.</p>
@@ -1304,7 +1304,7 @@ R    | 23   | 153,268         | C1C, C1P, C2C, D1C, L1C, L2C, S1C, S2C
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

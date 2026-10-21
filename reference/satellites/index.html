@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -814,6 +814,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Ephemeris Preparation Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time-systems-and-leap-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Systems and Leap Seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -989,6 +1006,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Ephemeris Preparation Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time-systems-and-leap-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Systems and Leap Seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1077,10 +1111,12 @@
 <h2 id="ephemeris-preparation-notes">Ephemeris Preparation Notes<a class="headerlink" href="#ephemeris-preparation-notes" title="Permanent link">&para;</a></h2>
 <p><code>prepare_ephemeris</code> now validates navigation records according to the orbit model actually used downstream:</p>
 <ul>
-<li><strong>GPS, Galileo, BeiDou</strong>: the function keeps one representative broadcast message per satellite and checks only the orbital fields strictly required for Keplerian position propagation.</li>
+<li><strong>GPS, Galileo, BeiDou</strong>: the function keeps every valid broadcast record per satellite, checking only the orbital fields strictly required for Keplerian position propagation. Position computation later selects the record whose <code>toe</code> is nearest to the observation epoch, since broadcast Keplerian parameters are only valid for ~±2 h around <code>toe</code> — reusing a single record across a multi-hour file would otherwise introduce 50–200 m biases. Records corrupted by the rinex-crate week-rollover <code>toe</code> parsing bug are filtered out and a warning is emitted.</li>
 <li><strong>GLONASS</strong>: the full message history is retained because state-vector propagation needs the closest valid epoch and the FDMA channel.</li>
 </ul>
 <p>This means a navigation message is not discarded, as long as the orbital solution is still sufficient to compute satellite geometry.</p>
+<h3 id="time-systems-and-leap-seconds">Time Systems and Leap Seconds<a class="headerlink" href="#time-systems-and-leap-seconds" title="Permanent link">&para;</a></h3>
+<p>Each broadcast record carries a <code>leap_seconds</code> field (UTC → GPST offset). The value is taken from the RINEX nav header via <a class="autorefs autorefs-internal" title="read_rinex_nav_header(path)" href="../parsing/#pytecgg.parsing.read_rinex_nav_header"><code>read_rinex_nav_header</code></a> (assigned to <code>GNSSContext.leap_seconds</code>) or falls back to <code>DEFAULT_LEAP_SECONDS_UTC_GPST</code> from <code>pytecgg.satellites.constants</code>. During position computation, observation epochs are shifted into the constellation's own time system before the elapsed-time-from-<code>toe</code> is computed: GPST for GPS / Galileo / QZSS, BDT for BeiDou (BDT = GPST − 14 s), and UTC for GLONASS.</p>
 <hr />
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
 
@@ -1126,7 +1162,11 @@ their specific orbit propagation models:</p>
 <ol>
 <li>
 <p>Keplerian Orbits (GPS, Galileo, BeiDou):
-    Selects a single representative ephemeris message (the central one) per satellite.</p>
+    Keeps every valid broadcast record per satellite. Position computation
+    later picks the record nearest to the observation epoch, since broadcast
+    Keplerian parameters are only valid for ~±2 h around toe. Records
+    corrupted by the rinex-crate week-rollover bug are filtered out (see
+    <code>_drop_week_rollover_bug</code>).</p>
 </li>
 <li>
 <p>State-Vector Orbits (GLONASS):
@@ -1136,6 +1176,10 @@ their specific orbit propagation models:</p>
     requiring numerical integration from the closest epoch.</p>
 </li>
 </ol>
+<p>Each record carries the <code>leap_seconds</code> value taken from
+<code>ctx.leap_seconds</code> (populated from the RINEX nav header via
+:func:<code>pytecgg.parsing.read_rinex_nav_header</code>) or
+<code>DEFAULT_LEAP_SECONDS_UTC_GPST</code> when the context does not provide one.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1209,8 +1253,8 @@ their specific orbit propagation models:</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Dictionary keyed by satellite ID (e.g., 'G01', 'R09').
-Values are a single dict for Keplerian systems or a list of dicts for GLONASS.</p>
+                <p>Dictionary keyed by satellite ID (e.g., 'G01', 'R09'). Values are a
+list of broadcast records (one dict per valid message).</p>
               </div>
             </td>
           </tr>
@@ -1499,8 +1543,10 @@ this threshold are filtered out.</p>
     <div class="doc doc-contents ">
 
         <p>Type alias for a dictionary containing processed ephemeris data.</p>
-<p>It maps satellite IDs (e.g., 'G01') to their specific orbital parameters, 
-handling both Keplerian (single dict) and state-vector (list of dicts) models.</p>
+<p>It maps satellite IDs (e.g., 'G01') to their orbital parameters. Values are
+a list of broadcast records for every constellation (Keplerian and
+state-vector); downstream code picks the record nearest the observation
+epoch. A plain dict is still accepted for legacy / hand-built ephemerides.</p>
 
     </div>
 
@@ -1639,7 +1685,7 @@ handling both Keplerian (single dict) and state-vector (list of dicts) models.</
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

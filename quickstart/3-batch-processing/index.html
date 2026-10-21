@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -990,8 +990,8 @@
 <span class="n">DOYS</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="mi">60</span><span class="p">))</span>
 
 <span class="c1"># Define data paths</span>
-<span class="n">obs_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/obs&quot;</span><span class="p">)</span>
-<span class="n">nav_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/nav&quot;</span><span class="p">)</span>
+<span class="n">obs_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data/obs"</span><span class="p">)</span>
+<span class="n">nav_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data/nav"</span><span class="p">)</span>
 
 <span class="n">download_nav_bkg</span><span class="p">(</span>
     <span class="n">year</span><span class="o">=</span><span class="n">YEAR</span><span class="p">,</span>
@@ -1004,12 +1004,12 @@
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pytecgg.parsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_rinex_obs</span><span class="p">,</span> <span class="n">read_rinex_nav</span>
 
-<span class="c1"># Collect and concatenate observations for station &#39;STAT&#39;</span>
-<span class="n">obs_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">obs_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;STAT*.rnx&quot;</span><span class="p">))</span>
+<span class="c1"># Collect and concatenate observations for station 'STAT'</span>
+<span class="n">obs_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">obs_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"STAT*.rnx"</span><span class="p">))</span>
 <span class="n">all_obs</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">read_rinex_obs</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">obs_files</span><span class="p">])</span>
 
 <span class="c1"># Consolidate navigation messages into a dictionary</span>
-<span class="n">nav_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nav_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;BRDC*.rnx.gz&quot;</span><span class="p">))</span>
+<span class="n">nav_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nav_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"BRDC*.rnx.gz"</span><span class="p">))</span>
 <span class="n">full_nav</span> <span class="o">=</span> <span class="p">{}</span>
 
 <span class="k">for</span> <span class="n">f_</span> <span class="ow">in</span> <span class="n">nav_files</span><span class="p">:</span>
@@ -1030,16 +1030,16 @@
 
 <span class="c1"># Enrich context and compute coordinates</span>
 <span class="n">ephem_dict</span> <span class="o">=</span> <span class="n">prepare_ephemeris</span><span class="p">(</span><span class="n">full_nav</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-<span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span><span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">],</span> <span class="n">all_obs</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">ephem_dict</span><span class="p">)</span>
+<span class="n">df_coords</span> <span class="o">=</span> <span class="n">satellite_coordinates</span><span class="p">(</span><span class="n">all_obs</span><span class="p">[</span><span class="s2">"sv"</span><span class="p">],</span> <span class="n">all_obs</span><span class="p">[</span><span class="s2">"epoch"</span><span class="p">],</span> <span class="n">ephem_dict</span><span class="p">)</span>
 
-<span class="c1"># Extract arcs and compute satellites&#39; geometry</span>
+<span class="c1"># Extract arcs and compute satellites' geometry</span>
 <span class="n">df_lc</span> <span class="o">=</span> <span class="n">calculate_linear_combinations</span><span class="p">(</span>
     <span class="n">all_obs</span><span class="p">,</span>
     <span class="n">ctx</span><span class="p">,</span>
-    <span class="n">selection_mode</span><span class="o">=</span><span class="s2">&quot;availability&quot;</span><span class="p">,</span>
+    <span class="n">selection_mode</span><span class="o">=</span><span class="s2">"availability"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">df_arcs</span> <span class="o">=</span> <span class="n">extract_arcs</span><span class="p">(</span><span class="n">df_lc</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">min_arc_length</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-    <span class="n">df_coords</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sv&quot;</span><span class="p">,</span> <span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span>
+    <span class="n">df_coords</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">"sv"</span><span class="p">,</span> <span class="s2">"epoch"</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">"left"</span>
 <span class="p">)</span>
 <span class="n">df_geom</span> <span class="o">=</span> <span class="n">calculate_ipp</span><span class="p">(</span><span class="n">df_arcs</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">min_elevation</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 
@@ -1176,7 +1176,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

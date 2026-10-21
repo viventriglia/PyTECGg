@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -771,6 +771,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#pytecgg.parsing.read_rinex_nav_header" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_rinex_nav_header
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -952,6 +963,17 @@
     <span class="md-ellipsis">
       
         read_rinex_nav
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pytecgg.parsing.read_rinex_nav_header" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_rinex_nav_header
       
     </span>
   </a>
@@ -1165,6 +1187,85 @@ DataFrames with 'epoch' as datetime[μs, UTC] and orbital parameters.</p>
 
 </div>
 
+<div class="doc doc-object doc-function">
+
+
+<h2 id="pytecgg.parsing.read_rinex_nav_header" class="doc doc-heading">
+            <code class=" language-python"><span class="n">read_rinex_nav_header</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#pytecgg.parsing.read_rinex_nav_header" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Read a few selected fields from a RINEX nav file header.</p>
+<p>The compiled parser does not surface the header. This pure-Python scan
+reads only the lines up to <code>END OF HEADER</code> and extracts:</p>
+<ul>
+<li><code>leap_seconds</code> : int or None
+    Value of the <code>LEAP SECONDS</code> header field (UTC -&gt; GPST offset). <code>None</code>
+    if the field is absent.</li>
+</ul>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>path</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Path to the RINEX navigation file (.rnx, .nav, or .gz).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Header fields. Currently <code>{"leap_seconds": int | None}</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
 
 
   </div>
@@ -1297,7 +1398,7 @@ DataFrames with 'epoch' as datetime[μs, UTC] and orbital parameters.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
