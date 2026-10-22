@@ -1,6 +1,6 @@
 [package]
 name = "pytecgg"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2021"
 description = "Total Electron Content (TEC) reconstruction with GNSS data – a Python package with a Rust core"
 license = "GPL-3.0-or-later"
@@ -22,7 +22,7 @@ name = "pytecgg"
 crate-type = ["cdylib"]
 
 [dependencies]
-rinex = { version = "0.19", features = ["flate2"] }
+rinex = { version = "0.24", features = ["flate2"] }
 flate2 = ">=1.1.0, <=1.1.2"
 pyo3 = { version = "0.24.2", features = ["extension-module"] }
 polars = { version = "0.48.1", features = ["lazy", "dtype-datetime"] }

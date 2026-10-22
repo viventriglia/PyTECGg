@@ -148,7 +148,9 @@ def _remove_cs_jumps(df: pl.DataFrame, threshold_jump: float = 10.0) -> pl.DataF
     return df_.drop(pl.col("^_.*$"))
 
 
-def _level_phase_to_code(df: pl.DataFrame) -> pl.DataFrame:
+def _level_phase_to_code(
+    df: pl.DataFrame, weighting: Optional[str] = None
+) -> pl.DataFrame:
     """
     Level phase measurements to code measurements within valid arcs
 
@@ -162,12 +164,23 @@ def _level_phase_to_code(df: pl.DataFrame) -> pl.DataFrame:
         - id_arc_valid: Valid arc identifiers
         - gflc_phase_fix: Fixed phase linear combination
         - gflc_code: Code linear combination
+        - ele: Satellite elevation [degrees] (only if `weighting="sin2"`)
+    weighting : str, optional
+        None for a plain mean; "sin2" weights each sample by sin²(ele), the
+        inverse of the code noise variance.
 
     Returns
     -------
     pl.DataFrame
         DataFrame with leveled phase column added
     """
+    if weighting not in (None, "sin2"):
+        raise ValueError(f"weighting must be None or 'sin2', got {weighting!r}")
+    if weighting == "sin2" and "ele" not in df.columns:
+        raise ValueError(
+            "weighting='sin2' requires an 'ele' column: run calculate_ipp before extract_arcs."
+        )
+
     if "gflc_phase_fix" not in df.columns or "gflc_code" not in df.columns:
         warn(
             "Both 'gflc_phase_fix' and 'gflc_code' must be present in DataFrame columns to level phase to code."
@@ -178,10 +191,23 @@ def _level_phase_to_code(df: pl.DataFrame) -> pl.DataFrame:
         (pl.col("gflc_phase_fix") - pl.col("gflc_code")).alias("_phase_code_diff")
     )
 
-    # Calculate the mean of (phase - code) over each valid arc
+    if weighting == "sin2":
+        # null weight where the diff is null, so it drops out of the denominator too
+        w = (
+            pl.when(pl.col("_phase_code_diff").is_not_null())
+            .then(pl.col("ele").radians().sin() ** 2)
+            .otherwise(None)
+        )
+        arc_offset = (w * pl.col("_phase_code_diff")).sum().over(
+            "id_arc_valid"
+        ) / w.sum().over("id_arc_valid")
+    else:
+        arc_offset = pl.col("_phase_code_diff").mean().over("id_arc_valid")
+
+    # Calculate the (weighted) mean of (phase - code) over each valid arc
     df_ = df_.with_columns(
         pl.when(pl.col("id_arc_valid").is_not_null())
-        .then(pl.col("_phase_code_diff").mean().over("id_arc_valid"))
+        .then(arc_offset)
         .otherwise(None)
         .alias("_mean_phase_code_diff")
     )
@@ -205,6 +231,7 @@ def extract_arcs(
     min_arc_length: int = 30,
     max_gap: Optional[timedelta] = None,
     threshold_jump: float = 10.0,
+    level_weighting: Optional[str] = None,
 ) -> pl.DataFrame:
     """
     Extract continuous TEC arcs and fix GNSS linear combinations for multiple constellations.
@@ -232,6 +259,10 @@ def extract_arcs(
         Maximum allowed time gap before declaring Loss-of-Lock.
     threshold_jump : float, optional
         Threshold for detecting significant jumps between epochs; default is 10.
+    level_weighting : str, optional
+        Weighting of the per-arc phase-to-code levelling offset: None (plain
+        mean, default) or "sin2" (sin²(elevation) weights; requires `ele`,
+        i.e. calling `calculate_ipp` before `extract_arcs`).
 
     Returns
     -------
@@ -298,4 +329,4 @@ def extract_arcs(
     # Apply corrections to the linear combinations and perform phase-to-code levelling
     df_lc_arcs_fix = _remove_cs_jumps(df=df_lc_arcs, threshold_jump=threshold_jump)
 
-    return _level_phase_to_code(df=df_lc_arcs_fix)
+    return _level_phase_to_code(df=df_lc_arcs_fix, weighting=level_weighting)

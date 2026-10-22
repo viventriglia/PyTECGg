@@ -54,15 +54,15 @@ def _calculate_modip_grid(year: int, altitude_km: float = ALTITUDE_KM) -> np.nda
 
 def _polar_nan_values(modip: np.ndarray, lats_grid: np.ndarray) -> np.ndarray:
     """
-    Handle NaN values at the poles by replacing them with ±90°.
+    Handle NaN values at the poles by replacing them with ±π/2 (radians).
 
     At the poles, the calculation involves division by very small numbers
     which results in NaN values. These are replaced with the appropriate
-    pole values (+90° for North pole, -90° for South pole).
+    pole values (+π/2 for North pole, -π/2 for South pole).
 
     Parameters:
     -----------
-    modip_deg : np.ndarray
+    modip : np.ndarray
         MoDip grid with potential NaN values at poles
     lats_grid : np.ndarray
         Latitude grid for identifying pole locations
@@ -74,7 +74,7 @@ def _polar_nan_values(modip: np.ndarray, lats_grid: np.ndarray) -> np.ndarray:
     """
     for i in range(modip.shape[0]):
         nan_mask = np.isnan(modip[i])
-        modip[i][nan_mask] = np.sign(lats_grid[nan_mask]) * 90.0
+        modip[i][nan_mask] = np.sign(lats_grid[nan_mask]) * np.pi / 2
     return modip
 
 
@@ -200,7 +200,7 @@ def extract_modip(
     Returns
     --------
     np.ndarray
-        Interpolated MoDip values for the specified coordinates
+        Interpolated MoDip values for the specified coordinates [radians]
     """
     from scipy.interpolate import RegularGridInterpolator
 
@@ -214,4 +214,4 @@ def extract_modip(
         fill_value=None,
     )
 
-    return interpolator(points_geo).round(2)
+    return interpolator(points_geo)

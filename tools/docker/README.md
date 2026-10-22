@@ -63,3 +63,11 @@ Once your data is in place, open a terminal in this directory and simply run:
 ```sh
 docker compose up
 ```
+
+After updating this repository to a new `PyTECGg` version, rebuild the image, otherwise Docker keeps running the version you built before:
+
+```sh
+docker compose up --build
+```
+
+**Note on time stamps:** the `epoch` column in the outputs is GPS time (GPST), as written in the RINEX observation files, even though it is labelled UTC. True UTC is currently 18 s (leap seconds) earlier.
