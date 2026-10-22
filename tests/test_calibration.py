@@ -15,3 +15,22 @@ def test_polynomial_expansion_wraps_longitude_across_dateline():
         max_degree=3,
     )
     assert terms[0, 1] == pytest.approx(2.0)
+
+
+def test_modip_is_radians_and_unrounded():
+    """MoDip stays within ±π/2 near the poles and resolves small latitude steps."""
+    from pytecgg.tec_calibration.modip import extract_modip
+
+    polar = extract_modip(
+        coords=(np.array([0.0, 0.0]), np.array([89.5, -89.5])),
+        year=2024,
+        coord_type="geo",
+    )
+    assert np.all(np.abs(polar) <= np.pi / 2)
+
+    rome = extract_modip(
+        coords=(np.array([12.5, 12.5]), np.array([41.9, 42.0])),
+        year=2024,
+        coord_type="geo",
+    )
+    assert rome[1] > rome[0]
