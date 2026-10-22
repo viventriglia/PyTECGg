@@ -3,16 +3,25 @@ import warnings
 from datetime import datetime
 from typing import Any
 
+import numpy as np
 import polars as pl
 
 from .constants import (
     CONSTELLATION_PARAMS,
+    GNSS_CONSTANTS,
     GPS_EPOCH,
     KEPLERIAN_POSITION_FIELDS,
     LEAP_SECONDS_UTC_GPST,
     LEAP_SECONDS_VALID_UNTIL,
 )
 from pytecgg.context import GNSSContext
+
+GLONASS_SLOT_TOLERANCE_DEG = 5.0
+"""Largest accepted offset of a GLONASS record from its satellite's orbital slot.
+Neighbouring slots are 45 deg apart along the orbit and the planes 120 deg apart."""
+
+_GLONASS_DRACONIC_PERIOD_S = 40544.0
+"""Nominal GLONASS draconic period (11 h 15 min 44 s)."""
 
 Ephem = dict[str, dict[str, Any] | list[dict[str, Any]]]
 """Type alias for a dictionary containing processed ephemeris data.
@@ -47,6 +56,78 @@ def _leap_seconds_at(epoch: datetime) -> int:
     return LEAP_SECONDS_UTC_GPST[i - 1][1] if i else 0
 
 
+def _glonass_slot_angles(sat_data: pl.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    """Right ascension of the ascending node and along-track phase (u - n t) of each
+    record, in degrees. Both are constant for one satellite over days; the inertial
+    frame is ECEF rotated by we * t, and its unknown constant offset cancels."""
+    we = GNSS_CONSTANTS["GLONASS"].we
+    t = sat_data["epoch"].dt.epoch("us").to_numpy() / 1e6
+    r = sat_data.select("satPosX", "satPosY", "satPosZ").to_numpy()
+    v = sat_data.select("velX", "velY", "velZ").to_numpy()
+    v = v + np.cross([0.0, 0.0, we], r)  # rotating-frame velocity -> inertial
+    cos_t, sin_t = np.cos(we * t), np.sin(we * t)
+
+    def to_inertial(x):
+        return np.column_stack(
+            [x[:, 0] * cos_t - x[:, 1] * sin_t, x[:, 0] * sin_t + x[:, 1] * cos_t, x[:, 2]]
+        )
+
+    r, v = to_inertial(r), to_inertial(v)
+    h = np.cross(r, v)
+    raan = np.arctan2(h[:, 0], -h[:, 1])
+    node = np.column_stack([np.cos(raan), np.sin(raan), np.zeros_like(raan)])
+    in_plane = np.cross(h / np.linalg.norm(h, axis=1, keepdims=True), node)
+    u = np.arctan2((r * in_plane).sum(axis=1), (r * node).sum(axis=1))
+    return np.degrees(raan), np.degrees(u - 2 * np.pi * t / _GLONASS_DRACONIC_PERIOD_S)
+
+
+def _offset_from_median_deg(angle: np.ndarray) -> np.ndarray:
+    """Absolute offset of each angle from their circular median, in degrees."""
+    wrap = lambda a: (a + 180.0) % 360.0 - 180.0  # noqa: E731
+    centre = np.degrees(np.angle(np.exp(1j * np.radians(angle)).mean()))
+    centre += np.median(wrap(angle - centre))
+    return np.abs(wrap(angle - centre))
+
+
+def _drop_mislabelled_glonass_records(sat_data: pl.DataFrame, sat_id: str) -> pl.DataFrame:
+    """
+    Drop GLONASS records whose state vector is not on this satellite's orbit.
+
+    Merged broadcast files sometimes carry another satellite's message under this
+    slot (BRDC00IGS_R on 2024-01-01/02 does, for most of the constellation, for up
+    to several hours). Its state vector is a valid orbit, just not this satellite's,
+    so positions jump to another slot for as long as it is used.
+
+    Every record gives the satellite's orbital plane (right ascension of the
+    ascending node) and its phase along the orbit; both stay put for days. A record
+    more than ``GLONASS_SLOT_TOLERANCE_DEG`` from the satellite's median in either
+    is rejected, so this holds while most of the satellite's records are its own.
+    Of several records for one epoch, the one nearest the median slot is kept.
+
+    The clock offset is not used: in the same files many records carry a wrong
+    clock offset with a correct orbit, and TEC does not need the satellite clock.
+    """
+    if sat_data.height < 3:
+        return sat_data
+    raan, phase = _glonass_slot_angles(sat_data)
+    checked = sat_data.with_columns(
+        _off=np.maximum(_offset_from_median_deg(raan), _offset_from_median_deg(phase))
+    )
+    on_slot = checked.filter(pl.col("_off") <= GLONASS_SLOT_TOLERANCE_DEG)
+    if n_dropped := checked.height - on_slot.height:
+        warnings.warn(
+            f"[GLONASS] {sat_id}: dropped {n_dropped} broadcast record(s) more than "
+            f"{GLONASS_SLOT_TOLERANCE_DEG:g} deg off the satellite's orbital slot "
+            "(likely another satellite's message under this slot).",
+            stacklevel=3,
+        )
+    return (
+        on_slot.sort("epoch", "_off")
+        .unique("epoch", keep="first", maintain_order=True)
+        .drop("_off")
+    )
+
+
 def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
     """
     Prepare ephemeris data from RINEX navigation data using the settings in GNSSContext.
@@ -63,7 +144,9 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
         All available ephemeris messages are collected for the satellite. This is
         required because GLONASS messages contain instantaneous state vectors (position/
         velocity/acceleration) valid only for short periods (typically ± 15 minutes),
-        requiring numerical integration from the closest epoch.
+        requiring numerical integration from the closest epoch. Records off the
+        satellite's orbital slot are dropped as mislabelled
+        (see :func:`_drop_mislabelled_glonass_records`).
 
     Each record carries a ``leap_seconds`` value (UTC -> GPST), taken from
     ``ctx.leap_seconds`` if set, else from the nav header LEAP SECONDS field
@@ -104,7 +187,9 @@ def prepare_ephemeris(nav: dict[str, pl.DataFrame], ctx: GNSSContext) -> Ephem:
 
             if is_state_vector:
                 # GLONASS: state-vector propagation needs the full history
-                sat_data = sat_data.sort("epoch")
+                sat_data = _drop_mislabelled_glonass_records(sat_data.sort("epoch"), normalised_sat_id)
+                if sat_data.is_empty():
+                    continue
                 ctx.glonass_channels[normalised_sat_id] = sat_data.get_column("channel")[0]
             else:
                 # Keplerian models (GPS, Galileo, BeiDou): keep every valid record

@@ -124,3 +124,52 @@ def test_glonass_leap_seconds_follow_the_nav_file(test_data_dir, tmp_path, strip
     ctx = GNSSContext(receiver_pos=(0.0, 0.0, 0.0), receiver_name="TEST", rinex_version="3.04", systems=["R"])
     ephem = prepare_ephemeris(nav, ctx)
     assert {rec["leap_seconds"] for recs in ephem.values() for rec in recs} == {16}
+
+
+def _glonass_nav(test_data_dir):
+    return read_rinex_nav(test_data_dir / "v3" / "nav" / "BRDC00GOP_R_20140920000_01D_MN.rnx")
+
+
+def _glonass_ephem(nav):
+    ctx = GNSSContext(receiver_pos=(0.0, 0.0, 0.0), receiver_name="TEST", rinex_version="3.04", systems=["R"])
+    return prepare_ephemeris(nav, ctx)
+
+
+def test_glonass_foreign_orbit_with_own_clock_is_dropped(test_data_dir):
+    """This file carries R06's state vector under R17 for 09:15-10:45, with R17's own
+    clock offset and channel: only those 4 records go, every other one stays."""
+    nav = _glonass_nav(test_data_dir)
+    with pytest.warns(UserWarning, match="R17: dropped 4 ") as caught:
+        ephem = _glonass_ephem(nav)
+    assert sum("dropped" in str(w.message) for w in caught) == 1
+    n_epochs = nav["GLONASS"].group_by("sv").agg(pl.col("epoch").n_unique()).rows()
+    assert all(len(ephem[f"R{int(sv):02d}"]) == n - 4 * (sv == "17") for sv, n in n_epochs)
+    r06 = {rec["datetime"]: rec["satPosX"] for rec in ephem["R06"]}
+    assert not {rec["satPosX"] for rec in ephem["R17"]} & set(r06.values())
+
+
+@pytest.mark.parametrize("n_foreign", [3, 9])
+@pytest.mark.parametrize("replace", [False, True])
+def test_glonass_mislabelled_records_are_dropped(test_data_dir, replace, n_foreign):
+    """Another satellite's messages filed under R01, as in BRDC00IGS_R on 2024-01-01/02:
+    alongside R01's own records for the same epochs, or in place of them, for up to
+    several hours (9 records: 4.5 h, like R13 on 2024-01-01)."""
+    nav = _glonass_nav(test_data_dir)
+    glo = nav["GLONASS"]
+    r01 = glo.filter(pl.col("sv") == "1").sort("epoch")
+    epochs = r01["epoch"][10 : 10 + n_foreign]
+    foreign = glo.filter((pl.col("sv") == "2") & pl.col("epoch").is_in(epochs.implode()))
+    assert foreign.height == n_foreign
+    if replace:
+        glo = glo.filter(~((pl.col("sv") == "1") & pl.col("epoch").is_in(foreign["epoch"].implode())))
+    nav = {**nav, "GLONASS": pl.concat([glo, foreign.with_columns(sv=pl.lit("1"))])}
+
+    with pytest.warns(UserWarning, match=f"R01: dropped {n_foreign} "):
+        ephem = _glonass_ephem(nav)
+
+    kept = {rec["datetime"]: rec["satPosX"] for rec in ephem["R01"]}
+    if replace:
+        assert len(kept) == r01.height - n_foreign and not set(foreign["epoch"]) & set(kept)
+    else:
+        assert kept == dict(zip(r01["epoch"], r01["satPosX"]))
+
