@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1065,7 +1065,7 @@
 
 
 <h2 id="pytecgg.tec_calibration.extract_arcs" class="doc doc-heading">
-            <code class=" language-python"><span class="n">extract_arcs</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">threshold_abs</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">threshold_std</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">min_arc_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold_jump</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span></code>
+            <code class=" language-python"><span class="n">extract_arcs</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">threshold_abs</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">threshold_std</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">min_arc_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold_jump</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">level_weighting</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#pytecgg.tec_calibration.extract_arcs" class="headerlink" title="Permanent link">&para;</a></h2>
 
@@ -1209,6 +1209,24 @@
                   <code>10.0</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>level_weighting</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Weighting of the per-arc phase-to-code levelling offset: None (plain
+mean, default) or "sin2" (sin²(elevation) weights; requires <code>ele</code>,
+i.e. calling <code>calculate_ipp</code> before <code>extract_arcs</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -1330,7 +1348,8 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Number of epochs per batch for calibration.</p>
+                <p>Length of each calibration batch, in minutes (despite the name).
+Default is 30.</p>
               </div>
             </td>
             <td>
@@ -1472,7 +1491,7 @@ if available.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Interpolated MoDip values for the specified coordinates</p>
+                <p>Interpolated MoDip values for the specified coordinates [radians]</p>
               </div>
             </td>
           </tr>
@@ -1613,10 +1632,10 @@ if available.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

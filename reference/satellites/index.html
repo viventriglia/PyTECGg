@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1111,12 +1111,18 @@
 <h2 id="ephemeris-preparation-notes">Ephemeris Preparation Notes<a class="headerlink" href="#ephemeris-preparation-notes" title="Permanent link">&para;</a></h2>
 <p><code>prepare_ephemeris</code> now validates navigation records according to the orbit model actually used downstream:</p>
 <ul>
-<li><strong>GPS, Galileo, BeiDou</strong>: the function keeps every valid broadcast record per satellite, checking only the orbital fields strictly required for Keplerian position propagation. Position computation later selects the record whose <code>toe</code> is nearest to the observation epoch, since broadcast Keplerian parameters are only valid for ~±2 h around <code>toe</code> — reusing a single record across a multi-hour file would otherwise introduce 50–200 m biases. Records corrupted by the rinex-crate week-rollover <code>toe</code> parsing bug are filtered out and a warning is emitted.</li>
+<li><strong>GPS, Galileo, BeiDou</strong>: the function keeps every valid broadcast record per satellite, checking only the orbital fields strictly required for Keplerian position propagation. Position computation later selects the record whose <code>toe</code> is nearest to the observation epoch, since broadcast Keplerian parameters are only valid for ~±2 h around <code>toe</code> — reusing a single record across a multi-hour file would otherwise introduce 50–200 m biases. Records more than 24 h from the observation epoch are not used. Galileo nav files repeat each record once per data source (F/NAV and I/NAV) with the same orbit; one record per epoch is kept, preferring I/NAV E1+E5b (<code>source</code> 517).</li>
 <li><strong>GLONASS</strong>: the full message history is retained because state-vector propagation needs the closest valid epoch and the FDMA channel.</li>
 </ul>
 <p>This means a navigation message is not discarded, as long as the orbital solution is still sufficient to compute satellite geometry.</p>
 <h3 id="time-systems-and-leap-seconds">Time Systems and Leap Seconds<a class="headerlink" href="#time-systems-and-leap-seconds" title="Permanent link">&para;</a></h3>
-<p>Each broadcast record carries a <code>leap_seconds</code> field (UTC → GPST offset). The value is taken from the RINEX nav header via <a class="autorefs autorefs-internal" title="read_rinex_nav_header(path)" href="../parsing/#pytecgg.parsing.read_rinex_nav_header"><code>read_rinex_nav_header</code></a> (assigned to <code>GNSSContext.leap_seconds</code>) or falls back to <code>DEFAULT_LEAP_SECONDS_UTC_GPST</code> from <code>pytecgg.satellites.constants</code>. During position computation, observation epochs are shifted into the constellation's own time system before the elapsed-time-from-<code>toe</code> is computed: GPST for GPS / Galileo / QZSS, BDT for BeiDou (BDT = GPST − 14 s), and UTC for GLONASS.</p>
+<p>Each broadcast record carries a <code>leap_seconds</code> field (UTC → GPST offset), chosen in this order:</p>
+<ol>
+<li><code>GNSSContext.leap_seconds</code>, if set (an explicit override).</li>
+<li>The <code>LEAP SECONDS</code> field of the nav file header, which <code>read_rinex_nav</code> adds as a <code>leap_seconds</code> column. Nav files written after a new leap second carry the new value, so this follows future changes without a <code>PyTECGg</code> update. Files merged from several days keep each file's value.</li>
+<li>The leap-second table <code>LEAP_SECONDS_UTC_GPST</code> in <code>pytecgg.satellites.constants</code>, for the record date, when the header has no <code>LEAP SECONDS</code> line (the field is optional). The table is checked against IERS Bulletin C up to <code>LEAP_SECONDS_VALID_UNTIL</code>; for later records a warning says the value may be stale.</li>
+</ol>
+<p>Observation epochs from <code>read_rinex_obs</code> are on the GPST grid. During position computation they are shifted into the constellation's own time system before the elapsed time from the ephemeris epoch is computed: no shift for GPS / Galileo / QZSS, BDT for BeiDou (BDT = GPST − 14 s), and UTC for GLONASS (UTC = GPST − <code>leap_seconds</code>).</p>
 <hr />
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
 
@@ -1164,22 +1170,22 @@ their specific orbit propagation models:</p>
 <p>Keplerian Orbits (GPS, Galileo, BeiDou):
     Keeps every valid broadcast record per satellite. Position computation
     later picks the record nearest to the observation epoch, since broadcast
-    Keplerian parameters are only valid for ~±2 h around toe. Records
-    corrupted by the rinex-crate week-rollover bug are filtered out (see
-    <code>_drop_week_rollover_bug</code>).</p>
+    Keplerian parameters are only valid for ~±2 h around toe.</p>
 </li>
 <li>
 <p>State-Vector Orbits (GLONASS):
     All available ephemeris messages are collected for the satellite. This is
     required because GLONASS messages contain instantaneous state vectors (position/
     velocity/acceleration) valid only for short periods (typically ± 15 minutes),
-    requiring numerical integration from the closest epoch.</p>
+    requiring numerical integration from the closest epoch. Records off the
+    satellite's orbital slot are dropped as mislabelled
+    (see :func:<code>_drop_mislabelled_glonass_records</code>).</p>
 </li>
 </ol>
-<p>Each record carries the <code>leap_seconds</code> value taken from
-<code>ctx.leap_seconds</code> (populated from the RINEX nav header via
-:func:<code>pytecgg.parsing.read_rinex_nav_header</code>) or
-<code>DEFAULT_LEAP_SECONDS_UTC_GPST</code> when the context does not provide one.</p>
+<p>Each record carries a <code>leap_seconds</code> value (UTC -&gt; GPST), taken from
+<code>ctx.leap_seconds</code> if set, else from the nav header LEAP SECONDS field
+(the <code>leap_seconds</code> column added by :func:<code>pytecgg.parsing.read_rinex_nav</code>),
+else from the leap-second table for the record date.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1339,9 +1345,8 @@ and GLONASS (using state-vector propagation).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Dictionary containing ephemeris data
-Expected format: {sv_id: dict} for Keplerian systems or {sv_id: list[dict]}
-for GLONASS.</p>
+                <p>Ephemeris data as returned by <code>prepare_ephemeris</code>: {sv_id: list[dict]}.
+For Keplerian systems a single dict per satellite is also accepted.</p>
               </div>
             </td>
             <td>
@@ -1682,10 +1687,10 @@ epoch. A plain dict is still accepted for legacy / hand-built ephemerides.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.footer", "content.code.copy", "content.tabs.link", "toc.follow", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
