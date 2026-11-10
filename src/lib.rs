@@ -4,26 +4,54 @@ use rinex::prelude::*;
 use polars::prelude::*;
 use std::path::Path;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Cursor, Read};
+use flate2::read::GzDecoder;
 
 /// Constant offset between J1900 (hifitime default) and Unix Epoch (1970) in microseconds,
 /// including the 19s constant offset between TAI and GPST.
 /// This ensures RINEX epochs align with the "round" 00/30s grid in Polars/Unix time.
 const UNIX_GPST_OFFSET_MICROS: i64 = 2_208_988_819_000_000;
 
-/// Helper function to read a RINEX file (supports regular, compressed, and gzipped RINEX files)
-fn _parse_file<P: AsRef<Path>>(path: P) -> Result<Rinex, ParsingError> {
-    let path = path.as_ref();
-
-    // 1. Try with gzip, if file has .gz extension
-    if path.extension().map_or(false, |ext| ext == "gz") {
-        if let Ok(rinex) = Rinex::from_gzip_file(path) {
-            return Ok(rinex);
+/// Parse a RINEX stream, dropping the LEAP SECONDS header line first.
+/// rinex 0.24 panics on short LEAP SECONDS lines (e.g. "    18  2326     7");
+/// pytecgg never uses that field (nav leap seconds come from read_rinex_nav_header).
+fn _parse_reader<R: Read>(reader: R) -> Result<Rinex, ParsingError> {
+    let mut reader = BufReader::new(reader);
+    let mut header = Vec::new();
+    let mut line = Vec::new();
+    while reader.read_until(b'\n', &mut line)? > 0 {
+        let label = line.get(60..).unwrap_or_default();
+        let end = label.starts_with(b"END OF HEADER");
+        if !label.starts_with(b"LEAP SECONDS") {
+            header.extend_from_slice(&line);
         }
-        // If gzip fails, continue to try regular parsing
+        line.clear();
+        if end {
+            break;
+        }
     }
+    Rinex::parse(&mut BufReader::new(Cursor::new(header).chain(reader)))
+}
 
-    // 2. Try regular file parsing (works for both .rnx and .crx)
-    Rinex::from_file(path)
+/// Helper function to read a RINEX file (supports regular, compressed, and gzipped RINEX files)
+fn _parse_file<P: AsRef<Path>>(path: P) -> Result<Rinex, String> {
+    let path = path.as_ref();
+    // A crate panic would surface as a BaseException that `except Exception` misses
+    std::panic::catch_unwind(|| {
+        // 1. Try with gzip, if file has .gz extension
+        if path.extension().map_or(false, |ext| ext == "gz") {
+            if let Ok(rinex) = _parse_reader(GzDecoder::new(File::open(path)?)) {
+                return Ok(rinex);
+            }
+            // If gzip fails, continue to try regular parsing
+        }
+
+        // 2. Try regular file parsing (works for both .rnx and .crx)
+        _parse_reader(File::open(path)?)
+    })
+    .map_err(|_| "the rinex crate panicked while parsing this file".to_string())?
+    .map_err(|e| e.to_string())
 }
 
 
@@ -75,7 +103,8 @@ fn read_rinex_obs(path: &str) -> PyResult<(PyDataFrame, (f64, f64, f64), String)
 
                 for signal in &observations.signals {
                     epochs.push(ts);
-                    prns.push(signal.sv.to_string());
+                    // {:x} is always "S23"-style; Display names SBAS vehicles ("ASTRA-5B")
+                    prns.push(format!("{:x}", signal.sv));
                     codes.push(signal.observable.to_string());
                     values.push(signal.value);
                 }
@@ -137,20 +166,25 @@ fn read_rinex_nav(path: &str) -> PyResult<BTreeMap<String, PyDataFrame>> {
         let total_micros = (forced_epoch.to_duration_since_j1900().to_seconds() * 1_000_000.0) as i64;
         let ts = total_micros - UNIX_GPST_OFFSET_MICROS;
 
-        constellation_times.entry(constel.clone()).or_default().push(ts);
+        let times = constellation_times.entry(constel.clone()).or_default();
+        times.push(ts);
+        let current_len = times.len();
         constellation_svs.entry(constel.clone()).or_default().push(nav_key.sv.prn.to_string());
 
         let params_map = storage.entry(constel.clone()).or_default();
-        
-        params_map.entry("clock_bias".into()).or_default().push(Some(ephemeris.clock_bias));
-        params_map.entry("clock_drift".into()).or_default().push(Some(ephemeris.clock_drift));
-        params_map.entry("clock_drift_rate".into()).or_default().push(Some(ephemeris.clock_drift_rate));
+        // A column first seen at this record starts with nulls for all earlier records
+        let mut push = |key: String, value: f64| {
+            params_map.entry(key).or_insert_with(|| vec![None; current_len - 1]).push(Some(value));
+        };
+
+        push("clock_bias".into(), ephemeris.clock_bias);
+        push("clock_drift".into(), ephemeris.clock_drift);
+        push("clock_drift_rate".into(), ephemeris.clock_drift_rate);
 
         for (key, value) in &ephemeris.orbits {
-            params_map.entry(key.to_string()).or_default().push(Some(value.as_f64()));
+            push(key.to_string(), value.as_f64());
         }
 
-        let current_len = constellation_times.get(&constel).unwrap().len();
         for vec in params_map.values_mut() {
             if vec.len() < current_len {
                 vec.push(None);

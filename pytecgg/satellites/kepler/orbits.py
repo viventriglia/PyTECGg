@@ -1,10 +1,9 @@
-import datetime
 import warnings
 from typing import Optional
 
 import numpy as np
 
-from ..constants import BDT_OFFSET_FROM_GPST, DEFAULT_LEAP_SECONDS_UTC_GPST, TOL_KEPLER
+from ..constants import BDT_OFFSET_FROM_GPST, TOL_KEPLER
 
 
 def _is_ephemeris_valid(data: dict, sv_id: str, required_keys: dict) -> bool:
@@ -19,79 +18,35 @@ def _is_ephemeris_valid(data: dict, sv_id: str, required_keys: dict) -> bool:
     return True
 
 
-def _gps_to_datetime(time_week, time_s, leap_seconds=0):
-    gps_epoch = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
-    return gps_epoch + datetime.timedelta(
-        weeks=time_week, seconds=time_s - leap_seconds
-    )
-
-
-def _utc_to_system_time(
-    obs_time_utc: datetime.datetime,
-    gnss_system: Optional[str],
-    leap_seconds: int,
-) -> datetime.datetime:
-    """Shift a UTC observation datetime into the constellation's time system.
-
-    GPS / Galileo / QZSS reference broadcast ephemerides to GPST, BeiDou to BDT,
-    GLONASS to UTC. The ICDs fix all offsets:
-
-    - GPST = UTC + leap_seconds (currently 18 s, IERS Bulletin C).
-    - GST  = GPST (Galileo ICD).
-    - QZSST = GPST (QZSS ICD).
-    - BDT  = GPST - 14 s (BDS ICD, BDT epoch 2006-01-01).
-    - GLONASS uses UTC directly (no shift).
-    """
-    if gnss_system in ("GPS", "GALILEO", "QZSS"):
-        return obs_time_utc + datetime.timedelta(seconds=leap_seconds)
-    if gnss_system == "BEIDOU":
-        return obs_time_utc + datetime.timedelta(
-            seconds=leap_seconds - BDT_OFFSET_FROM_GPST
-        )
-    return obs_time_utc
-
-
 def _compute_time_elapsed(
-    obs_time: datetime.datetime,
-    gps_week: int,
-    toe: int,
+    obs_gpst_s: np.ndarray,
+    gps_week: np.ndarray,
+    toe: np.ndarray,
     gnss_system: Optional[str] = None,
-    leap_seconds: int = DEFAULT_LEAP_SECONDS_UTC_GPST,
-) -> float:
-    """Compute the time elapsed since the ephemeris reference epoch (ToE).
+) -> np.ndarray:
+    """Compute the time elapsed since the ephemeris reference epoch (ToE), in seconds.
 
-    ``obs_time`` is interpreted as UTC and shifted into the constellation's
-    own time system before subtracting the toe. ``gnss_system`` selects which
-    offset applies (GPST / GST / BDT / UTC for GLONASS).
+    ``obs_gpst_s`` is the observation time in seconds since the GPS epoch, on
+    the GPST grid of ``read_rinex_obs``. ``gps_week`` is the week of the
+    record's datetime, ``toe`` its seconds of week in the constellation's own
+    time system:
+
+    - GPST for GPS, GST = GPST for Galileo, QZSST = GPST for QZSS (no shift).
+    - BDT = GPST - 14 s for BeiDou (BDS ICD, BDT epoch 2006-01-01).
     """
-    if not isinstance(obs_time, datetime.datetime):
-        raise TypeError("Invalid datetime format in ephemeris data")
-
-    # Ensure obs_time is tz-aware UTC before applying the leap-second shift.
-    if obs_time.tzinfo is None:
-        obs_time = obs_time.replace(tzinfo=datetime.timezone.utc)
-
-    obs_time_in_sys = _utc_to_system_time(obs_time, gnss_system, leap_seconds)
-
-    toe_dt = _gps_to_datetime(
-        time_week=gps_week,
-        time_s=toe,
-    )
-    if toe_dt.tzinfo is None:
-        toe_dt = toe_dt.replace(tzinfo=datetime.timezone.utc)
-
-    return (obs_time_in_sys - toe_dt).total_seconds()
+    offset = BDT_OFFSET_FROM_GPST if gnss_system == "BEIDOU" else 0
+    return obs_gpst_s - offset - (gps_week * 604_800 + toe)
 
 
-def _kepler(e: float, mk: float, tol: float) -> float:
+def _kepler(e: np.ndarray, mk: np.ndarray, tol: float) -> np.ndarray:
     """
     Computes the eccentric anomaly (ek) from the mean anomaly (mk)
     using Kepler's equation and a fixed-point iteration method
 
     Parameters:
-    - e: numerical eccentricity of the orbit (dimensionless)
-    - mk: mean anomaly in radians
-    - tol: convergence tolerance in arcseconds (")
+    - e: numerical eccentricity of the orbit (dimensionless), scalar or array
+    - mk: mean anomaly in radians, scalar or array
+    - tol: convergence tolerance in arcseconds ("), met by every element
 
     Returns:
     - ek: eccentric anomaly in radians
@@ -101,7 +56,7 @@ def _kepler(e: float, mk: float, tol: float) -> float:
     e_prev = mk
     e_curr = mk + e * np.sin(e_prev)
 
-    while abs(e_curr - e_prev) > tol_rad:
+    while np.max(np.abs(e_curr - e_prev), initial=0.0) > tol_rad:
         e_prev, e_curr = e_curr, mk + e * np.sin(e_curr)
 
     return e_curr

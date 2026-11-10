@@ -25,7 +25,6 @@ Starting from the basic observables and given a `GNSSContext`, `PyTECGg` can com
 
 ```python
 from pytecgg.linear_combinations import calculate_linear_combinations
-from pytecgg.tec_calibration import extract_arcs
 
 # Compute selected linear combinations
 df_lc = calculate_linear_combinations(
@@ -35,16 +34,6 @@ df_lc = calculate_linear_combinations(
     selection_mode="quality",
     band_overrides={"G": ("L1", "L5")},
 )
-
-# Identify continuous arcs, detect cycle slips
-# and loss-of-lock events
-df_arcs = extract_arcs(
-    df=df_lc,
-    ctx=ctx,
-    threshold_abs=10,
-    threshold_std=10,
-    threshold_jump=5
-)
 ```
 
 Processing parameters and options:
@@ -53,10 +42,6 @@ Processing parameters and options:
 - `band_overrides`: optional per-system override for the selected band pair, for example `{"G": ("L1", "L5")}` or `{"BEIDOU": ("L1", "L7")}`. For BeiDou, the override is still evaluated per satellite, so satellites without that pair are skipped. Mutually exclusive with `obs_overrides`.
 - `obs_overrides`: optional per-satellite observable pins, for example `{"C06": {"phase": ("L1P", "L2X"), "code": ("C1X", "C2P")}}`. Keys are satellite ids; values fully specify the phase and/or code observables to use. Any constellation with a pinned satellite is processed per satellite — pinned satellites use the forced observables (and are skipped if any are missing) while the rest fall back to normal selection. Mutually exclusive with `band_overrides`.
 - `combinations`: defines which signals to compute. Options include GFLC (`gflc_phase`, `gflc_code`), IFLC (`iflc_phase`, `iflc_code`), and MW (`mw`). When `gflc_code` is requested, the output also contains a `gflc_code_obs_used` column with the two code observable names (e.g. `"C1C,C2W"`) used to compute it; likewise `gflc_phase` adds a `gflc_phase_obs_used` column with the two phase observable names (e.g. `"L1C,L2W"`). For BeiDou these values can vary per satellite.
-- `extract_arcs`: outputs a Polars `DataFrame` containing unique arc identifiers (`id_arc_valid`) and arc-levelled GFLC values, essential for accurate bias estimation.
-- `threshold_abs` & `threshold_std`: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.
-- `threshold_jump`: tolerance for detecting and correcting residual jumps within an arc.
-- `max_gap`: can be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared.
 
 
 ## Orbital Propagation 🌍
@@ -68,13 +53,13 @@ from pytecgg.satellites import satellite_coordinates
 
 # Compute satellites' ECEF coordinates
 df_coords = satellite_coordinates(
-    sv_ids=df_arcs["sv"],
-    epochs=df_arcs["epoch"],
+    sv_ids=df_lc["sv"],
+    epochs=df_lc["epoch"],
     ephem_dict=ephem_dict
 )
 
 # Join coordinates with the observation data
-df_geom = df_arcs.join(df_coords, on=["sv", "epoch"], how="left")
+df_geom = df_lc.join(df_coords, on=["sv", "epoch"], how="left")
 ```
 
 `satellite_coordinates` provides the `X`, `Y`, `Z` positions of each satellite for every observed epoch.
@@ -86,13 +71,38 @@ The IPP is the theoretical intersection between the satellite–receiver line of
 ```python
 from pytecgg.satellites import calculate_ipp
 
-df_final = calculate_ipp(df_geom, ctx=ctx, min_elevation=20)
+df_ipp = calculate_ipp(df_geom, ctx=ctx, min_elevation=20)
 ```
 
 This function appends geographic coordinates (`lat_ipp`, `lon_ipp`) and the mapping function values to the Polars `DataFrame`. The `min_elevation` argument sets a cut-off angle (in degrees) to filter satellite elevation.
 
 !!! info "Elevation Masking"
     Filtering out elevations below 20° is highly recommended to feed cleaner data to the calibration model, as low-elevation signals are more susceptible to multipath and noise.
+
+## Arc Extraction & Levelling ✂️
+
+Arcs are extracted after the elevation cut, so that arc lengths and the phase-to-code levelling offset only use samples above `min_elevation`.
+
+```python
+from pytecgg.tec_calibration import extract_arcs
+
+# Identify continuous arcs, detect cycle slips
+# and loss-of-lock events, level phase to code
+df_final = extract_arcs(
+    df=df_ipp,
+    ctx=ctx,
+    threshold_abs=10,
+    threshold_std=10,
+    threshold_jump=5,
+    level_weighting="sin2",
+)
+```
+
+- `extract_arcs`: outputs a Polars `DataFrame` containing unique arc identifiers (`id_arc_valid`) and arc-levelled GFLC values, essential for accurate bias estimation.
+- `threshold_abs` & `threshold_std`: absolute and standard deviation thresholds used on the MW combination to detect cycle slips.
+- `threshold_jump`: tolerance for detecting and correcting residual jumps within an arc.
+- `max_gap`: can be explicitly set or automatically inferred from the data; if the time gap between consecutive epochs becomes too large, a loss-of-lock is declared.
+- `level_weighting`: `None` (default) levels each arc with the plain mean of phase − code; `"sin2"` weights each sample by sin²(elevation), down-weighting noisy low-elevation code. Requires the `ele` column from `calculate_ipp`.
 
 ## Wrapping up 🏁
 

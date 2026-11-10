@@ -92,3 +92,26 @@ def test_no_intersection():
     assert df_res["lon_ipp"].is_nan().all()
     assert df_res["azi"].is_nan().all()
     assert df_res["ele"].is_nan().all()
+
+
+def test_min_elevation_drops_rows_without_geometry():
+    """NaN compares greater than any number in polars, so rows with no
+    satellite position must be dropped explicitly by the elevation filter."""
+    df_sat = pl.DataFrame(
+        {
+            "sat_x": [-11177306.3509, np.nan],
+            "sat_y": [23710565.8502, np.nan],
+            "sat_z": [3758426.0384, np.nan],
+        }
+    )
+    ctx = GNSSContext(
+        receiver_pos=(-1224960.9797, 5804226.5715, 2338188.7548),
+        receiver_name="TEST",
+        rinex_version="3.04",
+        systems=["G"],
+    )
+
+    df_res = calculate_ipp(df_sat, ctx, min_elevation=20)
+
+    assert df_res.height == 1
+    assert df_res["ele"][0] == pytest.approx(65.9, abs=0.5)

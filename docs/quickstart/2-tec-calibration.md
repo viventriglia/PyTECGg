@@ -8,7 +8,7 @@ The calibration process is a fundamental step in GNSS-based ionospheric studies.
 
 The calibration computes both slant TEC (**sTEC**) and vertical TEC (**vTEC**) by modeling the ionosphere as a thin shell at a fixed altitude. The spatial variation of the ionospheric delay is represented using a polynomial expansion of the shell up to a configurable degree (`max_degree`, default is 3).
 
-To ensure temporal stability and account for intra-day variations of the hardware biases, the calibration is performed in batches of size `batch_size_epochs`. This allows the model to remain responsive to ionospheric variations while mitigating the impact of code-delay multipath.
+To ensure temporal stability and account for intra-day variations of the hardware biases, the calibration is performed in time batches whose length, in minutes, is set by `batch_size_epochs`. This allows the model to remain responsive to ionospheric variations while mitigating the impact of code-delay multipath.
 
 To calibrate your TEC data, you need the prepared `DataFrame` (containing arc-levelled combinations and IPP coordinates) and the `GNSSContext`:
 
@@ -26,7 +26,7 @@ df_calibrated = calculate_tec(
 Calibration Parameters:
 
 - `max_polynomial_degree`: maximum degree of the polynomial expansion used to model the ionosphere; default is 3.
-- `batch_size_epochs`: number of epochs per batch; smaller batches track bias variations more closely, while larger ones offer more stability; default is 30.
+- `batch_size_epochs`: length of each batch **in minutes** (the name is historical; it does not depend on the sampling rate); smaller batches track bias variations more closely, while larger ones offer more stability; default is 30.
 
 ## Vertical Equivalent ↕️
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import TypedDict, Optional
 from dataclasses import dataclass
 
@@ -116,6 +116,7 @@ EPHEMERIS_FIELDS: EphemerisFields = {
         "velZ",
     ],
     "GALILEO": [
+        "source",
         "clock_bias",
         "clock_drift",
         "clock_drift_rate",
@@ -280,11 +281,37 @@ TOL_KEPLER: float = 0.001
 # Earth radius in meters
 RE: float = 6371000.0
 
-# Default leap-second count (UTC -> GPST) used when the RINEX header does not
-# carry a LEAP SECONDS field. Current as of IERS Bulletin C (last leap second
-# 2017-01-01). Override at runtime via GNSSContext.leap_seconds, populated from
-# read_rinex_nav_header().
-DEFAULT_LEAP_SECONDS_UTC_GPST: int = 18
+# Leap seconds (UTC -> GPST) and the UTC date from which each value applies
+# (0 before 1981-07-01). Used only when neither GNSSContext.leap_seconds nor the
+# nav header LEAP SECONDS field gives a value.
+LEAP_SECONDS_UTC_GPST: tuple[tuple[date, int], ...] = (
+    (date(1981, 7, 1), 1),
+    (date(1982, 7, 1), 2),
+    (date(1983, 7, 1), 3),
+    (date(1985, 7, 1), 4),
+    (date(1988, 1, 1), 5),
+    (date(1990, 1, 1), 6),
+    (date(1991, 1, 1), 7),
+    (date(1992, 7, 1), 8),
+    (date(1993, 7, 1), 9),
+    (date(1994, 7, 1), 10),
+    (date(1996, 1, 1), 11),
+    (date(1997, 7, 1), 12),
+    (date(1999, 1, 1), 13),
+    (date(2006, 1, 1), 14),
+    (date(2009, 1, 1), 15),
+    (date(2012, 7, 1), 16),
+    (date(2015, 7, 1), 17),
+    (date(2017, 1, 1), 18),
+)
+
+# The table is known correct before this date: IERS Bulletin C 72 (2026-07-06)
+# announced no leap second at the end of December 2026; the next possible one is
+# at the end of June 2027. Move it forward after each Bulletin C (January, July).
+LEAP_SECONDS_VALID_UNTIL: date = date(2027, 7, 1)
+
+# Leap-second count after the last table entry
+DEFAULT_LEAP_SECONDS_UTC_GPST: int = LEAP_SECONDS_UTC_GPST[-1][1]
 
 # BeiDou time (BDT) trails GPST by a fixed 14 s (BDS ICD, BDT epoch 2006-01-01).
 # This is a constant defined by the ICD and never changes.

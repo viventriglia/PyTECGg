@@ -64,19 +64,19 @@ from pytecgg.tec_calibration import (
 ephem_dict = prepare_ephemeris(full_nav, ctx)
 df_coords = satellite_coordinates(all_obs["sv"], all_obs["epoch"], ephem_dict)
 
-# Extract arcs and compute satellites' geometry
+# Compute satellites' geometry (with elevation cut), then extract arcs
 df_lc = calculate_linear_combinations(
     all_obs,
     ctx,
     selection_mode="availability",
 )
-df_arcs = extract_arcs(df_lc, ctx, min_arc_length=120).join(
-    df_coords, on=["sv", "epoch"], how="left"
+df_geom = calculate_ipp(
+    df_lc.join(df_coords, on=["sv", "epoch"], how="left"), ctx, min_elevation=20
 )
-df_geom = calculate_ipp(df_arcs, ctx, min_elevation=20)
+df_arcs = extract_arcs(df_geom, ctx, min_arc_length=120, level_weighting="sin2")
 
 # Final calibrated products
-df_cal = calculate_tec(df_geom, ctx=ctx)
+df_cal = calculate_tec(df_arcs, ctx=ctx)
 df_veq = calculate_vertical_equivalent(df_cal, ctx=ctx)
 ```
 

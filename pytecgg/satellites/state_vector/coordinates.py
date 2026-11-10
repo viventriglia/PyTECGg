@@ -4,7 +4,7 @@ from typing import Any, Literal
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from ..constants import GNSS_CONSTANTS
+from ..constants import DEFAULT_LEAP_SECONDS_UTC_GPST, GNSS_CONSTANTS
 from pytecgg.satellites.kepler.orbits import _is_ephemeris_valid
 from pytecgg.satellites.state_vector.orbits import _glonass_derivatives, _get_gmst
 
@@ -77,7 +77,10 @@ def _state_vector_satellite_coordinates(
     if obs_time is not None and obs_time.tzinfo is None:
         obs_time = obs_time.replace(tzinfo=datetime.timezone.utc)
 
-    delta_seconds = (obs_time - eph_time).total_seconds()
+    # obs_time is GPST, GLONASS ephemeris epochs are UTC: UTC = GPST - leap seconds
+    delta_seconds = (obs_time - eph_time).total_seconds() - data.get(
+        "leap_seconds", DEFAULT_LEAP_SECONDS_UTC_GPST
+    )
     te = eph_time.hour * 3600 + eph_time.minute * 60 + eph_time.second
     ymd = [eph_time.year, eph_time.month, eph_time.day]
 

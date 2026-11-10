@@ -36,7 +36,8 @@ def _polynomial_expansion(
     np.ndarray
         Matrix of polynomial expansion terms with shape (n_points, 2 + max_degree)
     """
-    delta_lon = lon_ipp - lon_rec
+    # Wrap to [-180, 180) so stations near the date line get small differences
+    delta_lon = (lon_ipp - lon_rec + 180) % 360 - 180
     delta_modip = modip_ipp - modip_rec
     const_norm = 1.0 / (1.0 + np.abs(delta_modip) ** (max_degree + 1))
 
