@@ -13,9 +13,30 @@ use flate2::read::GzDecoder;
 /// This ensures RINEX epochs align with the "round" 00/30s grid in Polars/Unix time.
 const UNIX_GPST_OFFSET_MICROS: i64 = 2_208_988_819_000_000;
 
-/// Parse a RINEX stream, dropping the LEAP SECONDS header line first.
-/// rinex 0.24 panics on short LEAP SECONDS lines (e.g. "    18  2326     7");
-/// pytecgg never uses that field (nav leap seconds come from read_rinex_nav_header).
+const MONTHS: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/// Rewrite a numeric-month CRINEX date ("22-01-26 00:00") as "22-Jan-26 00:00".
+/// Some RNX2CRX builds write the numeric form, which rinex 0.24 rejects
+/// ("datime parsing"). Returns None when the line needs no change.
+fn _fix_crinex_date(line: &[u8]) -> Option<Vec<u8>> {
+    let field = std::str::from_utf8(line.get(40..60)?).ok()?;
+    let mut parts = field.trim().splitn(3, '-');
+    let (day, month, rest) = (parts.next()?, parts.next()?, parts.next()?);
+    let name = MONTHS.get(month.parse::<usize>().ok()?.checked_sub(1)?)?;
+    let fixed = format!("{:<20}", format!("{day}-{name}-{rest}"));
+    if fixed.len() != 20 {
+        return None; // would push the label off column 61
+    }
+    Some([&line[..40], fixed.as_bytes(), &line[60..]].concat())
+}
+
+/// Parse a RINEX stream after cleaning two header lines that rinex 0.24 cannot handle,
+/// neither of which pytecgg uses:
+/// - LEAP SECONDS is dropped: short lines (e.g. "    18  2326     7") panic the parser
+///   (nav leap seconds come from read_rinex_nav_header);
+/// - a numeric-month CRINEX PROG / DATE is rewritten (see _fix_crinex_date).
 fn _parse_reader<R: Read>(reader: R) -> Result<Rinex, ParsingError> {
     let mut reader = BufReader::new(reader);
     let mut header = Vec::new();
@@ -23,7 +44,15 @@ fn _parse_reader<R: Read>(reader: R) -> Result<Rinex, ParsingError> {
     while reader.read_until(b'\n', &mut line)? > 0 {
         let label = line.get(60..).unwrap_or_default();
         let end = label.starts_with(b"END OF HEADER");
-        if !label.starts_with(b"LEAP SECONDS") {
+        if label.starts_with(b"LEAP SECONDS") {
+            // dropped
+        } else if let Some(fixed) = label
+            .starts_with(b"CRINEX PROG / DATE")
+            .then(|| _fix_crinex_date(&line))
+            .flatten()
+        {
+            header.extend_from_slice(&fixed);
+        } else {
             header.extend_from_slice(&line);
         }
         line.clear();

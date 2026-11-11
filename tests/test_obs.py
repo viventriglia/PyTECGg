@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pytecgg.parsing import read_rinex_obs
 from polars import DataFrame
 import pytest
@@ -46,6 +48,20 @@ def test_read_rinex_obs_valid_v3_gzipped(obs_v3_gzip_file):
     assert all(col in df.columns for col in ["epoch", "sv", "observable", "value"])
     assert not all(v is None for v in [x, y, z])
     assert version.startswith("3")
+
+
+def test_read_rinex_obs_hatanaka_numeric_month(obs_v3_hatanaka_compressed_file, tmp_path):
+    """Some RNX2CRX builds write the CRINEX date as "08-10-24", not "08-Oct-24";
+    the file must read the same either way."""
+    raw = Path(obs_v3_hatanaka_compressed_file).read_bytes()
+    assert b"08-Oct-24 04:11     CRINEX PROG / DATE" in raw
+    numeric = tmp_path / "ASIR00ITA_R_20242810000_01D_30S_MO.crx"
+    numeric.write_bytes(raw.replace(b"08-Oct-24 04:11 ", b"08-10-24 04:11  ", 1))
+
+    expected, pos, version = read_rinex_obs(obs_v3_hatanaka_compressed_file)
+    df, pos2, version2 = read_rinex_obs(str(numeric))
+    assert (pos2, version2) == (pos, version)
+    assert df.equals(expected)
 
 
 def test_read_rinex_obs_nonexistent_file(invalid_file):
