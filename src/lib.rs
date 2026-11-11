@@ -17,14 +17,21 @@ const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-/// Rewrite a numeric-month CRINEX date ("22-01-26 00:00") as "22-Jan-26 00:00".
-/// Some RNX2CRX builds write the numeric form, which rinex 0.24 rejects
-/// ("datime parsing"). Returns None when the line needs no change.
+/// Rewrite a CRINEX date's month as rinex 0.24 expects it ("Jan"): some writers use
+/// "22-01-26 00:00" (RNX2CRX builds) or "22-JAN-26 00:05:27" (Alloy firmware), which
+/// fail the whole file with "datime parsing". Returns None when the line needs no change.
 fn _fix_crinex_date(line: &[u8]) -> Option<Vec<u8>> {
     let field = std::str::from_utf8(line.get(40..60)?).ok()?;
     let mut parts = field.trim().splitn(3, '-');
     let (day, month, rest) = (parts.next()?, parts.next()?, parts.next()?);
-    let name = MONTHS.get(month.parse::<usize>().ok()?.checked_sub(1)?)?;
+    let index = match month.parse::<usize>() {
+        Ok(n) => n.checked_sub(1)?,
+        Err(_) => MONTHS.iter().position(|m| m.eq_ignore_ascii_case(month))?,
+    };
+    let name = MONTHS.get(index)?;
+    if *name == month {
+        return None;
+    }
     let fixed = format!("{:<20}", format!("{day}-{name}-{rest}"));
     if fixed.len() != 20 {
         return None; // would push the label off column 61
